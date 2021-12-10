@@ -1,0 +1,4002 @@
+codeunit 60600 "All Event"
+{
+    trigger OnRun()
+    var
+        Teee: Page "Sales Order";
+    begin
+
+    end;
+
+
+
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnAfterValidateEvent', 'Quantity', false, false)]
+    local procedure QuantityEvent(var Rec: Record "Sales Line"; CurrFieldNo: Integer)
+    begin
+        /*//old Working Code fromelite++
+                // Manish ++ 19/10/2016 ++
+                //IF CurrFieldNo = FIELDNO(Quantity) THEN BEGIN//Azhar
+                if Rec.Quantity <> 0 then begin
+                    IF CurrFieldNo = 15 THEN BEGIN//Azhar
+                        Clear(CurrFieldNoGlo);
+                        CurrFieldNoGlo := CurrFieldNo;
+                        CLEAR(RemainingQuantity);
+                        IF RecUserSetup.GET(USERID) THEN BEGIN
+                            IF NOT RecUserSetup."Override Max. Qty. Calculation" THEN BEGIN
+                                MaximumOrderQuantity.RESET;
+                                MaximumOrderQuantity.SETRANGE("Item Code", Rec."No.");
+                                IF NOT MaximumOrderQuantity.ISEMPTY THEN BEGIN
+
+                                    RemainingQuantity := CheckMaxOrderQty(Rec);
+                                    //MESSAGE(FORMAT(RemainingQuantity));
+                                    IF RemainingQuantity < 0 THEN
+                                        ERROR('Maximum quantity allowed has been exceeded');
+
+                                END;
+                            END;
+                        END ELSE BEGIN
+                            MaximumOrderQuantity.RESET;
+                            MaximumOrderQuantity.SETRANGE("Item Code", rec."No.");
+                            IF NOT MaximumOrderQuantity.ISEMPTY THEN BEGIN
+                                RemainingQuantity := CheckMaxOrderQty(Rec);
+                                IF RemainingQuantity <= 0 THEN
+                                    ERROR('Maximum quantity allowed has been exceeded');
+
+                            END;
+                        END;
+                    END;
+                end;
+                // Manish ++ 19/10/2016 --
+                */
+        //old Working Code fromelite--
+
+        //NewCode Azhar++
+        if Rec.Quantity <> 0 then begin
+            IF CurrFieldNo = 15 THEN BEGIN
+                Clear(CurrFieldNoGlo);
+                CurrFieldNoGlo := CurrFieldNo;
+                CLEAR(RemainingQuantity);
+                IF RecUserSetup.GET(USERID) THEN BEGIN
+                    IF NOT RecUserSetup."Override Max. Qty. Calculation" THEN BEGIN
+                        CheckMaxOrderQty2(Rec);
+                    END;
+                END ELSE BEGIN
+                    CheckMaxOrderQty2(Rec);
+                END;
+            END;
+        end;
+        //NewCode Azhar--
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnAfterValidateEvent', 'Line Amount', false, false)]
+    local procedure LineAmountEvent(var Rec: Record "Sales Line"; CurrFieldNo: Integer)
+    begin
+        //NewCode Azhar++
+        if Rec."Line Amount" <> 0 then begin
+            IF RecUserSetup.GET(USERID) THEN BEGIN
+                IF NOT RecUserSetup."Override Max. Qty. Calculation" THEN BEGIN
+                    CheckMaxOrderamt(Rec);
+                END;
+            END ELSE BEGIN
+                CheckMaxOrderamt(Rec);
+            END;
+        end;
+        //NewCode Azhar--
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnAfterValidateEvent', 'Unit Price', false, false)]
+    local procedure UnitPriceEvent(var Rec: Record "Sales Line"; CurrFieldNo: Integer)
+    begin
+        //NewCode Azhar++
+        if Rec."Line Amount" <> 0 then begin
+            IF RecUserSetup.GET(USERID) THEN BEGIN
+                IF NOT RecUserSetup."Override Max. Qty. Calculation" THEN BEGIN
+                    CheckMaxOrderamt(Rec);
+                END;
+            END ELSE BEGIN
+                CheckMaxOrderamt(Rec);
+            END;
+        end;
+        //NewCode Azhar--
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnAfterValidateEvent', 'Line Discount %', false, false)]
+    local procedure LineDiscountPerEvent(var Rec: Record "Sales Line"; CurrFieldNo: Integer)
+    begin
+        //NewCode Azhar++
+        if Rec."Line Amount" <> 0 then begin
+            IF RecUserSetup.GET(USERID) THEN BEGIN
+                IF NOT RecUserSetup."Override Max. Qty. Calculation" THEN BEGIN
+                    CheckMaxOrderamt(Rec);
+                END;
+            END ELSE BEGIN
+                CheckMaxOrderamt(Rec);
+            END;
+        end;
+        //NewCode Azhar--
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnAfterValidateEvent', 'Line Discount Amount', false, false)]
+    local procedure LineDiscountAmtEvent(var Rec: Record "Sales Line"; CurrFieldNo: Integer)
+    begin
+        //NewCode Azhar++
+        if Rec."Line Amount" <> 0 then begin
+            IF RecUserSetup.GET(USERID) THEN BEGIN
+                IF NOT RecUserSetup."Override Max. Qty. Calculation" THEN BEGIN
+                    CheckMaxOrderamt(Rec);
+                END;
+            END ELSE BEGIN
+                CheckMaxOrderamt(Rec);
+            END;
+        end;
+        //NewCode Azhar--
+    end;
+
+    var
+        myInt: Integer;
+        CurrFieldNoGlo: Integer;
+        MaximumOrderQuantity: Record "Sales Quota";
+        RemainingQuantity: Decimal;
+        RecUserSetup: Record "User Setup";
+
+    //Azhar++
+    procedure CheckMaxOrderQty2(P_SalesLine: Record 37)
+    var
+        SalesHeader: Record "Sales Header";
+        Recitem: Record Item;
+        CurrentMonthStartDate: Date;
+        CurrentYear: Integer;
+        currentMonth: Integer;
+        CurrentMonth_Text: Text;
+        EndDate: Date;
+    begin
+        Clear(CurrentMonthStartDate);
+        Clear(EndDate);
+        IF CurrFieldNoGlo <> 15 THEN
+            EXIT;
+
+        SalesHeader.Reset();
+        SalesHeader.SetRange("No.", P_SalesLine."Document No.");
+        if SalesHeader.FindFirst() then;
+
+        Recitem.Reset();
+        Recitem.SetRange("No.", P_SalesLine."No.");
+        if Recitem.FindFirst() then;
+
+        //StartDateEndDateCalculation
+        currentMonth := Date2DMY(SalesHeader."Order Date", 2);
+        CurrentYear := Date2DMY(SalesHeader."Order Date", 3);
+        if currentMonth > 9 then
+            CurrentMonth_Text := Format(currentMonth)
+        else
+            CurrentMonth_Text := '0' + Format(currentMonth);
+        Evaluate(CurrentMonthStartDate, '01' + CurrentMonth_Text + Format(CurrentYear));
+        //CurrentMonthStartDate--
+
+        //EndDate++
+        EndDate := CalcDate('+1M', CurrentMonthStartDate);
+        EndDate := CalcDate('-1D', EndDate);
+        //EndDate--
+
+
+        //Per Order all 9 Validation++
+
+        //-------------1: All Customer, All Item, ErrorCode(AAPOQ)-------------
+        PerOrderAllCustomerAllItemQty(P_SalesLine, SalesHeader, Recitem."Item Category Code");
+        //-------------2: All Customer, Selected Item, ErrorCode(ASIPOQ)-------------
+        PerOrderAllCustomerSelItemQty(P_SalesLine, SalesHeader, Recitem."Item Category Code");
+        //-------------3: All Customer, Selected Item Category, ErrorCode(ASICPOQ)-------------
+        PerOrderAllCustomerSelItemCatQty(P_SalesLine, SalesHeader, Recitem."Item Category Code");
+        //-------------4: Selected Customer, All Item, ErrorCode(SCAPOQ)-------------
+        PerOrderSelCustomerAllItem(P_SalesLine, SalesHeader, Recitem."Item Category Code");
+        //-------------5: Selected Customer, Selected Item, ErrorCode(SCSIPOQ)-------------
+        PerOrderSelCustomerSelItemQty(P_SalesLine, SalesHeader, Recitem."Item Category Code");
+        //-------------6: Selected Customer, Selected Item Category, ErrorCode(SCSICPOQ)-------------
+        PerOrderSelCustomerSelItemCatQty(P_SalesLine, SalesHeader, Recitem."Item Category Code");
+        //-------------7: Selected Customer Price Group, All Item, ErrorCode(SCGAPOQ)-------------
+        PerOrderSelCustomerGroupAllItem(P_SalesLine, SalesHeader, Recitem."Item Category Code");
+        //-------------8: Selected Customer Price Group, Selected Item, ErrorCode(SCGSIPOQ)-------------
+        PerOrderSelCustomerGroupSelItemQty(P_SalesLine, SalesHeader, Recitem."Item Category Code");
+        //-------------9: Selected Customer Price Group, Selected Item Category, ErrorCode(SCGSICPOQ)-------------
+        PerOrderSelCustomerGroupSelItemCatQty(P_SalesLine, SalesHeader, Recitem."Item Category Code");
+
+        //Per Order all 9 Validation--
+
+
+        //Per Day all 9 validation++
+        //-------------1: All Customer, All Item, ErrorCode(AAPDQ)-------------
+        PerDayAllCustomerAllItemQty(P_SalesLine, SalesHeader, Recitem."Item Category Code");
+        //-------------2: All Customer, Selected Item, ErrorCode(ASIPDQ)-------------
+        PerDayAllCustomerSelItemQty(P_SalesLine, SalesHeader, Recitem."Item Category Code");
+        //-------------3: All Customer, Selected Item Category, ErrorCode(ASICPDQ)-------------
+        PerDayAllCustomerSelItemCatQty(P_SalesLine, SalesHeader, Recitem."Item Category Code");
+        //-------------4: Selected Customer, All Item, ErrorCode(SCAPDQ)-------------
+        PerDaySelCustomerAllItemQty(P_SalesLine, SalesHeader, Recitem."Item Category Code");
+        //-------------5: Selected Customer, Selected Item, ErrorCode(SCSIPDQ)-------------
+        PerDaySelCustomerSelItemQty(P_SalesLine, SalesHeader, Recitem."Item Category Code");
+        //-------------6: Selected Customer, Selected Item Category, ErrorCode(SCSICPDQ)-------
+        PerDaySelCustomerSelItemCatQty(P_SalesLine, SalesHeader, Recitem."Item Category Code");
+        //-------------7: Selected Customer Price Group, All Item, ErrorCode(SCGAPDQ)-------------
+        PerDaySelCustomerGroupAllItemQty(P_SalesLine, SalesHeader, Recitem."Item Category Code");
+        //-------------8: Selected Customer Price Group, Selected Item, ErrorCode(SCGSIPDQ)-------
+        PerDaySelCustomerGroupSelItemQty(P_SalesLine, SalesHeader, Recitem."Item Category Code");
+        //-------------9: Selected Customer Price Group, Selected Item Category, ErrorCode(SCGSICPOQ)-------------
+        PerDaySelCustomerGroupSelItemCatQty(P_SalesLine, SalesHeader, Recitem."Item Category Code");
+        //Per Day all 9 validation++
+
+        //Per Month all 9 validation++
+        //Salman++
+        //-------------1: All Customer, All Item, ErrorCode(AAPMQ)-------------
+        PerMonthAllCustomerAllItemQty(P_SalesLine, SalesHeader, Recitem."Item Category Code", CurrentMonthStartDate, EndDate);
+        //-------------2: All Customer, Selected Item, ErrorCode(ASIPMQ)-------------
+        PerMonthAllCustomerSelItemQty(P_SalesLine, SalesHeader, Recitem."Item Category Code", CurrentMonthStartDate, EndDate);
+        //-------------3: All Customer, Selected Item Category, ErrorCode(ASICPMQ)-------------
+        PerMonthAllCustomerSelItemCatQty(P_SalesLine, SalesHeader, Recitem."Item Category Code", CurrentMonthStartDate, EndDate);
+        //-------------4: Selected Customer, All Item, ErrorCode(SCAPMQ)-------------
+        PerMonthSelCustomerAllItemQty(P_SalesLine, SalesHeader, Recitem."Item Category Code", CurrentMonthStartDate, EndDate);
+        //-------------5: Selected Customer, Selected Item, ErrorCode(SCSIPMQ)-------------
+        PerMonthSelCustomerSelItemQty(P_SalesLine, SalesHeader, Recitem."Item Category Code", CurrentMonthStartDate, EndDate);
+        //-------------6: Selected Customer, Selected Item Category, ErrorCode(SCSICPMQ)-------
+        PerMonthSelCustomerSelItemCatQty(P_SalesLine, SalesHeader, Recitem."Item Category Code", CurrentMonthStartDate, EndDate);
+        //-------------7: Selected Customer Price Group, All Item, ErrorCode(SCGAPMQ)-------------
+        PerMonthSelCustomerGroupAllItemQty(P_SalesLine, SalesHeader, Recitem."Item Category Code", CurrentMonthStartDate, EndDate);
+        //-------------8: Selected Customer Price Group, Selected Item, ErrorCode(SCGSIPMQ)-------
+        PerMonthSelCustomerGroupSelItemQty(P_SalesLine, SalesHeader, Recitem."Item Category Code", CurrentMonthStartDate, EndDate);
+        //-------------9: Selected Customer Price Group, Selected Item Category, ErrorCode(SCGSICPMQ)-------------
+        PerMonthSelCustomerGroupSelItemCatQty(P_SalesLine, SalesHeader, Recitem."Item Category Code", CurrentMonthStartDate, EndDate);
+        //Per Month all 9 validation--
+    end;
+
+    procedure CheckMaxOrderamt(P_SalesLine: Record 37)
+    var
+        SalesHeaderAmt: Record "Sales Header";
+        RecitemAmt: Record Item;
+        CurrentMonthStartDateAmt: Date;
+        CurrentYearAmt: Integer;
+        currentMonthAmt: Integer;
+        CurrentMonth_TextAmt: Text;
+        EndDateAmt: Date;
+    begin
+
+
+        Clear(CurrentMonthStartDateAmt);
+        Clear(EndDateAmt);
+        IF CurrFieldNoGlo <> 15 THEN
+            EXIT;
+
+        SalesHeaderAmt.Reset();
+        SalesHeaderAmt.SetRange("No.", P_SalesLine."Document No.");
+        if SalesHeaderAmt.FindFirst() then;
+
+        RecitemAmt.Reset();
+        RecitemAmt.SetRange("No.", P_SalesLine."No.");
+        if RecitemAmt.FindFirst() then;
+
+        //StartDateEndDateCalculation
+        currentMonthAmt := Date2DMY(SalesHeaderAmt."Order Date", 2);
+        CurrentYearAmt := Date2DMY(SalesHeaderAmt."Order Date", 3);
+        if currentMonthAmt > 9 then
+            CurrentMonth_TextAmt := Format(currentMonthAmt)
+        else
+            CurrentMonth_TextAmt := '0' + Format(currentMonthAmt);
+        Evaluate(CurrentMonthStartDateAmt, '01' + CurrentMonth_TextAmt + Format(CurrentYearAmt));
+        //CurrentMonthStartDate--
+
+        //EndDate++
+        EndDateAmt := CalcDate('+1M', CurrentMonthStartDateAmt);
+        EndDateAmt := CalcDate('-1D', EndDateAmt);
+        //EndDate--
+
+
+
+        //Per Order all 9 Validation++
+        //-------------1: All Customer, All Item, ErrorCode(AAPOAMT)-------------
+        PerOrderAllCustomerAllItemAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code");
+        //-------------2: All Customer, Selected Item, ErrorCode(ASIPOAMT)-------------
+        PerOrderAllCustomerSelItemAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code");
+        //-------------3: All Customer, Selected Item Category, ErrorCode(ASICPOAMT)-------------
+        PerOrderAllCustomerSelItemCatAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code");
+        //-------------4: Selected Customer, All Item, ErrorCode(SCAPOAMT)-------------
+        PerOrderSelCustomerAllItemAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code");
+        //-------------5: Selected Customer, Selected Item, ErrorCode(SCSIPOAMT)-------------
+        PerOrderSelCustomerSelItemAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code");
+        //-------------6: Selected Customer, Selected Item Category, ErrorCode(SCSICPOAMT)-------------
+        PerOrderSelCustomerSelItemCatAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code");
+        //-------------7: Selected Customer Price Group, All Item, ErrorCode(SCGAPOAMT)-------------
+        PerOrderSelCustomerGroupAllItemAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code");
+        //-------------8: Selected Customer Price Group, Selected Item, ErrorCode(SCGSIPOAMT)-------------
+        PerOrderSelCustomerGroupSelItemAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code");
+        //-------------9: Selected Customer Price Group, Selected Item Category, ErrorCode(SCGSICPOAMT)-------------
+        PerOrderSelCustomerGroupSelItemCatAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code");
+        //Per Order all 9 Validation++
+
+        //Per Day all 9 validation++
+        //-------------1: All Customer, All Item, ErrorCode(AAPDAMT)-------------
+        PerDayAllCustomerAllItemAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code");
+        //-------------2: All Customer, Selected Item, ErrorCode(ASIPDAMT)-------------
+        PerDayAllCustomerSelItemAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code");
+        //-------------3: All Customer, Selected Item Category, ErrorCode(ASICPDAMT)-------------
+        PerDayAllCustomerSelItemCatAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code");
+        //-------------4: Selected Customer, All Item, ErrorCode(SCAPDAMT)-------------
+        PerDaySelCustomerAllItemAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code");
+        //-------------5: Selected Customer, Selected Item, ErrorCode(SCSIPDAMT)-------------
+        PerDaySelCustomerSelItemAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code");
+        //-------------6: Selected Customer, Selected Item Category, ErrorCode(SCSICPDAMT)-------
+        PerDaySelCustomerSelItemCatAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code");
+        //-------------7: Selected Customer Price Group, All Item, ErrorCode(SCGAPDAMT)-------------
+        PerDaySelCustomerGroupAllItemAmt(P_SalesLine, SalesHeaderAmt, Recitemamt."Item Category Code");
+        //-------------8: Selected Customer Price Group, Selected Item, ErrorCode(SCGSIPDAMT)-------
+        PerDaySelCustomerGroupSelItemAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code");
+        //-------------9: Selected Customer Price Group, Selected Item Category, ErrorCode(SCGSICPOAMT)-------------
+        PerDaySelCustomerGroupSelItemCatAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code");
+        //Per Day all 9 validation--
+
+        //Per Month all 9 validation++
+        //-------------1: All Customer, All Item, ErrorCode(AAPMAMT)-------------
+        PerMonthAllCustomerAllItemAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
+        //-------------2: All Customer, Selected Item, ErrorCode(ASIPMAMT)-------------
+        PerMonthAllCustomerSelItemAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
+        //-------------3: All Customer, Selected Item Category, ErrorCode(ASICPMAMT)-------------
+        PerMonthAllCustomerSelItemCatAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
+        //-------------4: Selected Customer, All Item, ErrorCode(SCAPMAMT)-------------
+        PerMonthSelCustomerAllItemAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
+        //-------------5: Selected Customer, Selected Item, ErrorCode(SCSIPMAMT)-------------
+        PerMonthSelCustomerSelItemAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
+        //-------------6: Selected Customer, Selected Item Category, ErrorCode(SCSICPMAMT)-------
+        PerMonthSelCustomerSelItemCatAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
+        //-------------7: Selected Customer Price Group, All Item, ErrorCode(SCGAPMAMT)-------------
+        PerMonthSelCustomerGroupAllItemAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
+        //-------------8: Selected Customer Price Group, Selected Item, ErrorCode(SCGSIPMAMT)-------
+        PerMonthSelCustomerGroupSelItemAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
+        //-------------9: Selected Customer Price Group, Selected Item Category, ErrorCode(SCGSICPMAMT)-------------
+        PerMonthSelCustomerGroupSelItemCatAmt(P_SalesLine, SalesHeaderAmt, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
+        //Per Month all 9 validation--
+
+    end;
+
+
+    procedure PerOrderAllCustomerAllItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"All Customer");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE("Document Type", RecSalesLine."Document Type");
+            RecSalesLineNew.SETRANGE("Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE("No.", RecSalesLine."No.");
+            RecSalesLineNew.SetRange(Type, RecSalesLineNew.Type::Item);
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLine.Quantity
+                    ELSE
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLineNew.Quantity;
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'AAPOQ');
+        end;
+    end;
+
+    procedure PerOrderAllCustomerSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"All Customer");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
+        L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE("Document Type", RecSalesLine."Document Type");
+            RecSalesLineNew.SETRANGE("Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE("No.", RecSalesLine."No.");
+            RecSalesLineNew.SetRange(Type, RecSalesLineNew.Type::Item);
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLine.Quantity
+                    ELSE
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLineNew.Quantity;
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'ASIPOQ');
+        end;
+    end;
+
+    procedure PerOrderAllCustomerSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        RecItem: Record Item;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"All Customer");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
+        L_MaxOrderQty.SetRange("Item Code", ItemCat);
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE("Document Type", RecSalesLine."Document Type");
+            RecSalesLineNew.SETRANGE("Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SetRange(Type, RecSalesLineNew.Type::Item);
+            //RecSalesLineNew.SETRANGE("No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    RecItem.Reset();
+                    RecItem.SetRange("No.", RecSalesLineNew."No.");
+                    RecItem.SetRange("Item Category Code", ItemCat);
+                    if RecItem.FindFirst() then begin
+                        IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                            L_DayOrderQty := L_DayOrderQty + RecSalesLine.Quantity
+                        ELSE
+                            L_DayOrderQty := L_DayOrderQty + RecSalesLineNew.Quantity;
+                    end;
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'ASICPOQ');
+        end;
+    end;
+
+    procedure PerOrderSelCustomerAllItem(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
+        if RecSalesHeader."Ship-to Code" <> '' then
+            L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE("Document Type", RecSalesLine."Document Type");
+            RecSalesLineNew.SETRANGE("Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE("No.", RecSalesLine."No.");
+            RecSalesLineNew.SetRange(Type, RecSalesLineNew.Type::Item);
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLine.Quantity
+                    ELSE
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLineNew.Quantity;
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCAPOQ');
+        end;
+    end;
+
+    procedure PerOrderSelCustomerSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
+        L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
+        if RecSalesHeader."Ship-to Code" <> '' then
+            L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE("Document Type", RecSalesLine."Document Type");
+            RecSalesLineNew.SETRANGE("Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE("No.", RecSalesLine."No.");
+            RecSalesLineNew.SetRange(Type, RecSalesLineNew.Type::Item);
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLine.Quantity
+                    ELSE
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLineNew.Quantity;
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCSIPOQ');
+        end;
+    end;
+
+    procedure PerOrderSelCustomerSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        RecItem: Record Item;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
+        L_MaxOrderQty.SetRange("Item Code", ItemCat);
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
+        if RecSalesHeader."Ship-to Code" <> '' then
+            L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE("Document Type", RecSalesLine."Document Type");
+            RecSalesLineNew.SETRANGE("Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SetRange(Type, RecSalesLineNew.Type::Item);
+            //RecSalesLineNew.SETRANGE("No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    RecItem.Reset();
+                    RecItem.SetRange("No.", RecSalesLineNew."No.");
+                    RecItem.SetRange("Item Category Code", ItemCat);
+                    if RecItem.FindFirst() then begin
+                        IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                            L_DayOrderQty := L_DayOrderQty + RecSalesLine.Quantity
+                        ELSE
+                            L_DayOrderQty := L_DayOrderQty + RecSalesLineNew.Quantity;
+                    end;
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCSICPOQ');
+        end;
+    end;
+
+    procedure PerOrderSelCustomerGroupAllItem(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Customer Price Group");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE("Document Type", RecSalesLine."Document Type");
+            RecSalesLineNew.SETRANGE("Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE("No.", RecSalesLine."No.");
+            RecSalesLineNew.SetRange(Type, RecSalesLineNew.Type::Item);
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLine.Quantity
+                    ELSE
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLineNew.Quantity;
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCGAPOQ');
+        end;
+    end;
+
+    procedure PerOrderSelCustomerGroupSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Customer Price Group");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
+        L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE("Document Type", RecSalesLine."Document Type");
+            RecSalesLineNew.SETRANGE("Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE("No.", RecSalesLine."No.");
+            RecSalesLineNew.SetRange("Customer Price Group", RecSalesLine."Customer Price Group");
+            RecSalesLineNew.SetRange(Type, RecSalesLineNew.Type::Item);
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLine.Quantity
+                    ELSE
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLineNew.Quantity;
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCGSIPOQ');
+        end;
+    end;
+
+    procedure PerOrderSelCustomerGroupSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        RecItem: Record Item;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Customer Price Group");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
+        L_MaxOrderQty.SetRange("Item Code", ItemCat);
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE("Document Type", RecSalesLine."Document Type");
+            RecSalesLineNew.SETRANGE("Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SetRange("Customer Price Group", RecSalesLine."Customer Price Group");
+            RecSalesLineNew.SetRange(Type, RecSalesLineNew.Type::Item);
+            //RecSalesLineNew.SETRANGE("No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    RecItem.Reset();
+                    RecItem.SetRange("No.", RecSalesLineNew."No.");
+                    RecItem.SetRange("Item Category Code", ItemCat);
+                    if RecItem.FindFirst() then begin
+                        IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                            L_DayOrderQty := L_DayOrderQty + RecSalesLine.Quantity
+                        ELSE
+                            L_DayOrderQty := L_DayOrderQty + RecSalesLineNew.Quantity;
+                    end;
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCGSICPOQ');
+        end;
+    end;
+
+    procedure PerDayAllCustomerAllItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60602;
+        L_DayWiseShippedQty: Query 60603;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"All Customer");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+            L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+            L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+            END;
+            L_DayWiseQty.CLOSE;
+
+            L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseShippedQty.OPEN;
+            WHILE L_DayWiseShippedQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+            END;
+            L_DayWiseShippedQty.CLOSE;
+
+            // Added additonal code for checking the quantity for the particular Order ++
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_OrderQty := L_OrderQty + RecSalesLine.Quantity
+                    ELSE
+                        L_OrderQty := L_OrderQty + RecSalesLineNew.Quantity;
+
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'AAPDQ');
+        end;
+    end;
+
+    procedure PerDayAllCustomerSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60602;
+        L_DayWiseShippedQty: Query 60603;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"All Customer");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
+        L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+            L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+            L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+            END;
+            L_DayWiseQty.CLOSE;
+
+            L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseShippedQty.OPEN;
+            WHILE L_DayWiseShippedQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+            END;
+            L_DayWiseShippedQty.CLOSE;
+
+            // Added additonal code for checking the quantity for the particular Order ++
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_OrderQty := L_OrderQty + RecSalesLine.Quantity
+                    ELSE
+                        L_OrderQty := L_OrderQty + RecSalesLineNew.Quantity;
+
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'ASIPDQ');
+        end;
+    end;
+
+
+    procedure PerDayAllCustomerSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60602;
+        L_DayWiseShippedQty: Query 60603;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"All Customer");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
+        L_MaxOrderQty.SetRange("Item Code", ItemCat);
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+            L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+            L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+            //L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+            END;
+            L_DayWiseQty.CLOSE;
+
+            L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+            //L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Item_Category_Code, ItemCat);
+            L_DayWiseShippedQty.OPEN;
+            WHILE L_DayWiseShippedQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+            END;
+            L_DayWiseShippedQty.CLOSE;
+
+            // Added additonal code for checking the quantity for the particular Order ++
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+            //RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+            RecSalesLine.SetRange("Item Category Code", ItemCat);
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_OrderQty := L_OrderQty + RecSalesLine.Quantity
+                    ELSE
+                        L_OrderQty := L_OrderQty + RecSalesLineNew.Quantity;
+
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'ASICPDQ');
+        end;
+    end;
+
+    procedure PerDaySelCustomerAllItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60602;
+        L_DayWiseShippedQty: Query 60603;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        if RecSalesHeader."Ship-to Code" <> '' then
+            L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+            L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+            L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+            END;
+            L_DayWiseQty.CLOSE;
+
+            L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseShippedQty.OPEN;
+            WHILE L_DayWiseShippedQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+            END;
+            L_DayWiseShippedQty.CLOSE;
+
+            // Added additonal code for checking the quantity for the particular Order ++
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_OrderQty := L_OrderQty + RecSalesLine.Quantity
+                    ELSE
+                        L_OrderQty := L_OrderQty + RecSalesLineNew.Quantity;
+
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCAPDQ');
+        end;
+    end;
+
+    procedure PerDaySelCustomerSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60602;
+        L_DayWiseShippedQty: Query 60603;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
+        L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        if RecSalesHeader."Ship-to Code" <> '' then
+            L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+            L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+            L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+            END;
+            L_DayWiseQty.CLOSE;
+
+            L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseShippedQty.OPEN;
+            WHILE L_DayWiseShippedQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+            END;
+            L_DayWiseShippedQty.CLOSE;
+
+            // Added additonal code for checking the quantity for the particular Order ++
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_OrderQty := L_OrderQty + RecSalesLine.Quantity
+                    ELSE
+                        L_OrderQty := L_OrderQty + RecSalesLineNew.Quantity;
+
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCSIPDQ');
+        end;
+    end;
+
+    procedure PerDaySelCustomerSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60602;
+        L_DayWiseShippedQty: Query 60603;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
+        L_MaxOrderQty.SetRange("Item Code", ItemCat);
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        if RecSalesHeader."Ship-to Code" <> '' then
+            L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+            L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+            L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+            //L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+            END;
+            L_DayWiseQty.CLOSE;
+
+            L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+            //L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Item_Category_Code, ItemCat);
+            L_DayWiseShippedQty.OPEN;
+            WHILE L_DayWiseShippedQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+            END;
+            L_DayWiseShippedQty.CLOSE;
+
+            // Added additonal code for checking the quantity for the particular Order ++
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+            //RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+            RecSalesLine.SetRange("Item Category Code", ItemCat);
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_OrderQty := L_OrderQty + RecSalesLine.Quantity
+                    ELSE
+                        L_OrderQty := L_OrderQty + RecSalesLineNew.Quantity;
+
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCSICPDQ');
+        end;
+    end;
+
+    procedure PerDaySelCustomerGroupAllItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60602;
+        L_DayWiseShippedQty: Query 60603;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Customer Price Group");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+            L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+            //L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseQty.SetRange(L_DayWiseQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+            END;
+            L_DayWiseQty.CLOSE;
+
+            //L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+            //L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseShippedQty.OPEN;
+            WHILE L_DayWiseShippedQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+            END;
+            L_DayWiseShippedQty.CLOSE;
+
+            // Added additonal code for checking the quantity for the particular Order ++
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_OrderQty := L_OrderQty + RecSalesLine.Quantity
+                    ELSE
+                        L_OrderQty := L_OrderQty + RecSalesLineNew.Quantity;
+
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCGAPDQ');
+        end;
+    end;
+
+    procedure PerDaySelCustomerGroupSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60602;
+        L_DayWiseShippedQty: Query 60603;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Customer Price Group");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
+        L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+            L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+            //L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseQty.SetRange(L_DayWiseQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+            END;
+            L_DayWiseQty.CLOSE;
+
+            //L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+            //L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseShippedQty.OPEN;
+            WHILE L_DayWiseShippedQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+            END;
+            L_DayWiseShippedQty.CLOSE;
+
+            // Added additonal code for checking the quantity for the particular Order ++
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_OrderQty := L_OrderQty + RecSalesLine.Quantity
+                    ELSE
+                        L_OrderQty := L_OrderQty + RecSalesLineNew.Quantity;
+
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCGSIPDQ');
+        end;
+    end;
+
+    procedure PerDaySelCustomerGroupSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60602;
+        L_DayWiseShippedQty: Query 60603;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Customer Price Group");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
+        L_MaxOrderQty.SetRange("Item Code", ItemCat);
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+            L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
+            L_DayWiseQty.SetRange(L_DayWiseQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+            END;
+            L_DayWiseQty.CLOSE;
+
+
+            L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+            L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Item_Category_Code, ItemCat);
+            L_DayWiseShippedQty.OPEN;
+            WHILE L_DayWiseShippedQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+            END;
+            L_DayWiseShippedQty.CLOSE;
+
+            // Added additonal code for checking the quantity for the particular Order ++
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SetRange("Item Category Code", ItemCat);
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_OrderQty := L_OrderQty + RecSalesLine.Quantity
+                    ELSE
+                        L_OrderQty := L_OrderQty + RecSalesLineNew.Quantity;
+
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCGSICPDQ');
+        end;
+    end;
+
+    procedure PerMonthAllCustomerAllItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: date; Edate: Date)
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60602;
+        L_DayWiseShippedQty: Query 60603;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"All Customer");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FindSet THEN BEGIN
+            repeat
+                if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
+                    L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+                    L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+                    L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                    L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                    L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                    L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+                    L_DayWiseQty.OPEN;
+                    WHILE L_DayWiseQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+                    END;
+                    L_DayWiseQty.CLOSE;
+
+                    L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                    L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                    L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                    L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+                    L_DayWiseShippedQty.OPEN;
+                    WHILE L_DayWiseShippedQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+                    END;
+                    L_DayWiseShippedQty.CLOSE;
+
+                    // Added additonal code for checking the quantity for the particular Order ++
+                    RecSalesLineNew.RESET;
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+                    IF RecSalesLineNew.FINDSET THEN BEGIN
+                        REPEAT
+                            IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                                L_OrderQty := L_OrderQty + RecSalesLine.Quantity
+                            ELSE
+                                L_OrderQty := L_OrderQty + RecSalesLineNew.Quantity;
+
+                        UNTIL RecSalesLineNew.NEXT = 0;
+                    END
+                    ELSE
+                        L_OrderQty := RecSalesLine.Quantity;
+                    L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                    CheckingRemainingQty(L_RemainingQuantity, 'AAPMQ');
+                end;
+            until L_MaxOrderQty.Next = 0;
+        end;
+    end;
+
+    procedure PerMonthAllCustomerSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60602;
+        L_DayWiseShippedQty: Query 60603;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"All Customer");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
+        L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FindSet THEN BEGIN
+            repeat
+
+                if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
+                    L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+                    L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+                    L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                    L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                    L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                    L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+                    L_DayWiseQty.OPEN;
+                    WHILE L_DayWiseQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+                    END;
+                    L_DayWiseQty.CLOSE;
+
+                    L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                    L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                    L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                    L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+                    L_DayWiseShippedQty.OPEN;
+                    WHILE L_DayWiseShippedQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+                    END;
+                    L_DayWiseShippedQty.CLOSE;
+
+                    // Added additonal code for checking the quantity for the particular Order ++
+                    RecSalesLineNew.RESET;
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+                    IF RecSalesLineNew.FINDSET THEN BEGIN
+                        REPEAT
+                            IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                                L_OrderQty := L_OrderQty + RecSalesLine.Quantity
+                            ELSE
+                                L_OrderQty := L_OrderQty + RecSalesLineNew.Quantity;
+
+                        UNTIL RecSalesLineNew.NEXT = 0;
+                    END
+                    ELSE
+                        L_OrderQty := RecSalesLine.Quantity;
+                    L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                    CheckingRemainingQty(L_RemainingQuantity, 'ASIPMQ');
+                end;
+            until L_MaxOrderQty.Next = 0;
+        End;
+    end;
+
+    procedure PerMonthAllCustomerSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60602;
+        L_DayWiseShippedQty: Query 60603;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"All Customer");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
+        L_MaxOrderQty.SetRange("Item Code", ItemCat);
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FindSet() THEN BEGIN
+            repeat
+
+                if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
+                    L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+                    L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+                    L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                    L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                    L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                    //L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+                    L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
+                    L_DayWiseQty.OPEN;
+                    WHILE L_DayWiseQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+                    END;
+                    L_DayWiseQty.CLOSE;
+
+                    L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                    L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                    L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                    //L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+                    L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Item_Category_Code, ItemCat);
+                    L_DayWiseShippedQty.OPEN;
+                    WHILE L_DayWiseShippedQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+                    END;
+                    L_DayWiseShippedQty.CLOSE;
+
+                    // Added additonal code for checking the quantity for the particular Order ++
+                    RecSalesLineNew.RESET;
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+                    //RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+                    RecSalesLine.SetRange("Item Category Code", ItemCat);
+                    IF RecSalesLineNew.FINDSET THEN BEGIN
+                        REPEAT
+                            IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                                L_OrderQty := L_OrderQty + RecSalesLine.Quantity
+                            ELSE
+                                L_OrderQty := L_OrderQty + RecSalesLineNew.Quantity;
+
+                        UNTIL RecSalesLineNew.NEXT = 0;
+                    END
+                    ELSE
+                        L_OrderQty := RecSalesLine.Quantity;
+                    L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                    CheckingRemainingQty(L_RemainingQuantity, 'ASICPMQ');
+                end;
+            until L_MaxOrderQty.Next = 0;
+        End;
+    end;
+
+    procedure PerMonthSelCustomerAllItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60602;
+        L_DayWiseShippedQty: Query 60603;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
+        if RecSalesHeader."Ship-to Code" <> '' then
+            L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FindSet THEN BEGIN
+            repeat
+
+                if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
+                    L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+                    L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+                    L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                    L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                    L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                    L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+                    L_DayWiseQty.OPEN;
+                    WHILE L_DayWiseQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+                    END;
+                    L_DayWiseQty.CLOSE;
+
+                    L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                    L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                    L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                    L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+                    L_DayWiseShippedQty.OPEN;
+                    WHILE L_DayWiseShippedQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+                    END;
+                    L_DayWiseShippedQty.CLOSE;
+
+                    // Added additonal code for checking the quantity for the particular Order ++
+                    RecSalesLineNew.RESET;
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+                    IF RecSalesLineNew.FINDSET THEN BEGIN
+                        REPEAT
+                            IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                                L_OrderQty := L_OrderQty + RecSalesLine.Quantity
+                            ELSE
+                                L_OrderQty := L_OrderQty + RecSalesLineNew.Quantity;
+
+                        UNTIL RecSalesLineNew.NEXT = 0;
+                    END
+                    ELSE
+                        L_OrderQty := RecSalesLine.Quantity;
+                    L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCAPMQ');
+                end;
+            until L_MaxOrderQty.Next = 0;
+        end;
+    end;
+
+    procedure PerMonthSelCustomerSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60602;
+        L_DayWiseShippedQty: Query 60603;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
+        L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
+        if RecSalesHeader."Ship-to Code" <> '' then
+            L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FindSet() THEN BEGIN
+            repeat
+                if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
+                    L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+                    L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+                    L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                    L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                    L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                    L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+                    L_DayWiseQty.OPEN;
+                    WHILE L_DayWiseQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+                    END;
+                    L_DayWiseQty.CLOSE;
+
+                    L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                    L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                    L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                    L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+                    L_DayWiseShippedQty.OPEN;
+                    WHILE L_DayWiseShippedQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+                    END;
+                    L_DayWiseShippedQty.CLOSE;
+
+                    // Added additonal code for checking the quantity for the particular Order ++
+                    RecSalesLineNew.RESET;
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+                    IF RecSalesLineNew.FINDSET THEN BEGIN
+                        REPEAT
+                            IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                                L_OrderQty := L_OrderQty + RecSalesLine.Quantity
+                            ELSE
+                                L_OrderQty := L_OrderQty + RecSalesLineNew.Quantity;
+
+                        UNTIL RecSalesLineNew.NEXT = 0;
+                    END
+                    ELSE
+                        L_OrderQty := RecSalesLine.Quantity;
+                    L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCSIPMQ');
+                end;
+            until L_MaxOrderQty.Next = 0;
+        end;
+
+    end;
+
+    procedure PerMonthSelCustomerSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60602;
+        L_DayWiseShippedQty: Query 60603;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
+        L_MaxOrderQty.SetRange("Item Code", ItemCat);
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
+        if RecSalesHeader."Ship-to Code" <> '' then
+            L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FindSet() THEN BEGIN
+            repeat
+                if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
+                    L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+                    L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+                    L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                    L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                    L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                    //L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+                    L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
+                    L_DayWiseQty.OPEN;
+                    WHILE L_DayWiseQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+                    END;
+                    L_DayWiseQty.CLOSE;
+
+                    L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                    L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                    L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                    //L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+                    L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Item_Category_Code, ItemCat);
+                    L_DayWiseShippedQty.OPEN;
+                    WHILE L_DayWiseShippedQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+                    END;
+                    L_DayWiseShippedQty.CLOSE;
+
+                    // Added additonal code for checking the quantity for the particular Order ++
+                    RecSalesLineNew.RESET;
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+                    //RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+                    RecSalesLine.SetRange("Item Category Code", ItemCat);
+                    IF RecSalesLineNew.FINDSET THEN BEGIN
+                        REPEAT
+                            IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                                L_OrderQty := L_OrderQty + RecSalesLine.Quantity
+                            ELSE
+                                L_OrderQty := L_OrderQty + RecSalesLineNew.Quantity;
+
+                        UNTIL RecSalesLineNew.NEXT = 0;
+                    END
+                    ELSE
+                        L_OrderQty := RecSalesLine.Quantity;
+                    L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCSICPMQ');
+                end;
+            until L_MaxOrderQty.Next = 0;
+        end;
+    end;
+
+
+    procedure PerMonthSelCustomerGroupAllItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60602;
+        L_DayWiseShippedQty: Query 60603;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Customer Price Group");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FindSet() THEN BEGIN
+            repeat
+                if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
+                    L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+                    L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+                    //L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                    //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                    L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                    L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+                    L_DayWiseQty.SetRange(L_DayWiseQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+                    L_DayWiseQty.OPEN;
+                    WHILE L_DayWiseQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+                    END;
+                    L_DayWiseQty.CLOSE;
+
+                    //L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                    L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+                    //L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                    L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                    L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+                    L_DayWiseShippedQty.OPEN;
+                    WHILE L_DayWiseShippedQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+                    END;
+                    L_DayWiseShippedQty.CLOSE;
+
+                    // Added additonal code for checking the quantity for the particular Order ++
+                    RecSalesLineNew.RESET;
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+                    IF RecSalesLineNew.FINDSET THEN BEGIN
+                        REPEAT
+                            IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                                L_OrderQty := L_OrderQty + RecSalesLine.Quantity
+                            ELSE
+                                L_OrderQty := L_OrderQty + RecSalesLineNew.Quantity;
+
+                        UNTIL RecSalesLineNew.NEXT = 0;
+                    END
+                    ELSE
+                        L_OrderQty := RecSalesLine.Quantity;
+                    L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCGAPMQ');
+                end;
+            until L_MaxOrderQty.Next = 0;
+        end;
+    end;
+
+    procedure PerMonthSelCustomerGroupSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60602;
+        L_DayWiseShippedQty: Query 60603;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Customer Price Group");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
+        L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FindSet() THEN BEGIN
+            repeat
+                if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
+                    L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+                    L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+                    //L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                    //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                    L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                    L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+                    L_DayWiseQty.SetRange(L_DayWiseQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+                    L_DayWiseQty.OPEN;
+                    WHILE L_DayWiseQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+                    END;
+                    L_DayWiseQty.CLOSE;
+
+                    //L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                    L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+                    //L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                    L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                    L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+                    L_DayWiseShippedQty.OPEN;
+                    WHILE L_DayWiseShippedQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+                    END;
+                    L_DayWiseShippedQty.CLOSE;
+
+                    // Added additonal code for checking the quantity for the particular Order ++
+                    RecSalesLineNew.RESET;
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+                    IF RecSalesLineNew.FINDSET THEN BEGIN
+                        REPEAT
+                            IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                                L_OrderQty := L_OrderQty + RecSalesLine.Quantity
+                            ELSE
+                                L_OrderQty := L_OrderQty + RecSalesLineNew.Quantity;
+
+                        UNTIL RecSalesLineNew.NEXT = 0;
+                    END
+                    ELSE
+                        L_OrderQty := RecSalesLine.Quantity;
+                    L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCGSIPMQ');
+                end;
+            until L_MaxOrderQty.Next = 0;
+        end;
+    end;
+
+    procedure PerMonthSelCustomerGroupSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60602;
+        L_DayWiseShippedQty: Query 60603;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Customer Price Group");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
+        L_MaxOrderQty.SetRange("Item Code", ItemCat);
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FindSet() THEN BEGIN
+            repeat
+                if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
+                    L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+                    L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+                    L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                    L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
+                    L_DayWiseQty.SetRange(L_DayWiseQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+                    L_DayWiseQty.OPEN;
+                    WHILE L_DayWiseQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+                    END;
+                    L_DayWiseQty.CLOSE;
+
+
+                    L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+                    L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                    L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Item_Category_Code, ItemCat);
+                    L_DayWiseShippedQty.OPEN;
+                    WHILE L_DayWiseShippedQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+                    END;
+                    L_DayWiseShippedQty.CLOSE;
+
+                    // Added additonal code for checking the quantity for the particular Order ++
+                    RecSalesLineNew.RESET;
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+                    RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+                    RecSalesLineNew.SetRange("Item Category Code", ItemCat);
+                    IF RecSalesLineNew.FINDSET THEN BEGIN
+                        REPEAT
+                            IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                                L_OrderQty := L_OrderQty + RecSalesLine.Quantity
+                            ELSE
+                                L_OrderQty := L_OrderQty + RecSalesLineNew.Quantity;
+
+                        UNTIL RecSalesLineNew.NEXT = 0;
+                    END
+                    ELSE
+                        L_OrderQty := RecSalesLine.Quantity;
+                    L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCGSICPMQ');
+                end;
+            until L_MaxOrderQty.Next = 0;
+        end;
+    end;
+
+
+    procedure PerOrderAllCustomerAllItemAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderAmt: Decimal;
+        L_RemainingAmt: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderAmt: Decimal;
+    begin
+        Clear(L_DayOrderAmt);
+        Clear(L_RemainingAmt);
+        Clear(L_OrderAmt);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"All Customer");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE("Document Type", RecSalesLine."Document Type");
+            RecSalesLineNew.SETRANGE("Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE("No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_DayOrderAmt := L_DayOrderAmt + RecSalesLine."Line Amount"
+                    ELSE
+                        L_DayOrderAmt := L_DayOrderAmt + RecSalesLineNew."Line Amount";
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderAmt := RecSalesLine."Line Amount";
+
+            L_RemainingAmt := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderAmt + L_OrderAmt);
+            CheckingRemainingAmt(L_RemainingAmt, 'AAPOAMT');
+        end;
+    end;
+
+    procedure PerOrderAllCustomerSelItemAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderAmt: Record 60600;
+        L_DayOrderAmt: Decimal;
+        L_RemainingAmt: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderAmt: Decimal;
+    begin
+        Clear(L_DayOrderAmt);
+        Clear(L_RemainingAmt);
+        Clear(L_OrderAmt);
+        L_MaxOrderAmt.RESET;
+        L_MaxOrderAmt.SETRANGE("Sales Type", L_MaxOrderAmt."Sales Type"::"All Customer");
+        L_MaxOrderAmt.SetRange("Item Type", L_MaxOrderAmt."Item Type"::Item);
+        L_MaxOrderAmt.SetRange("Item Code", RecSalesLine."No.");
+        L_MaxOrderAmt.SetRange("Quantity Restriction", L_MaxOrderAmt."Quantity Restriction"::"Per Order");
+        L_MaxOrderAmt.SetRange("Restriction Type", L_MaxOrderAmt."Restriction Type"::"By Amount");
+        L_MaxOrderAmt.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderAmt.FINDFIRST THEN BEGIN
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE("Document Type", RecSalesLine."Document Type");
+            RecSalesLineNew.SETRANGE("Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE("No.", RecSalesLine."No.");
+            RecSalesLineNew.SetRange(Type, RecSalesLineNew.Type::Item);
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_DayOrderAmt := L_DayOrderAmt + RecSalesLine."Line Amount"
+                    ELSE
+                        L_DayOrderAmt := L_DayOrderAmt + RecSalesLineNew."Line Amount";
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderAmt := RecSalesLine."Line Amount";
+
+            L_RemainingAmt := L_MaxOrderAmt."Maximum Quantity" - (L_DayOrderAmt + L_OrderAmt);
+            CheckingRemainingAmt(L_RemainingAmt, 'ASIPOAMT');
+        end;
+    end;
+
+    procedure PerOrderAllCustomerSelItemCatAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        RecItem: Record Item;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"All Customer");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
+        L_MaxOrderQty.SetRange("Item Code", ItemCat);
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE("Document Type", RecSalesLine."Document Type");
+            RecSalesLineNew.SETRANGE("Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SetRange(Type, RecSalesLineNew.Type::Item);
+            //RecSalesLineNew.SETRANGE("No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    RecItem.Reset();
+                    RecItem.SetRange("No.", RecSalesLineNew."No.");
+                    RecItem.SetRange("Item Category Code", ItemCat);
+                    if RecItem.FindFirst() then begin
+                        IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                            L_DayOrderQty := L_DayOrderQty + RecSalesLine."Line Amount"
+                        ELSE
+                            L_DayOrderQty := L_DayOrderQty + RecSalesLineNew."Line Amount";
+                    end;
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine."Line Amount";
+
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingAmt(L_RemainingQuantity, 'ASICPOAMT');
+        end;
+    end;
+
+
+    procedure PerOrderSelCustomerAllItemAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
+        if RecSalesHeader."Ship-to Code" <> '' then
+            L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE("Document Type", RecSalesLine."Document Type");
+            RecSalesLineNew.SETRANGE("Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE("No.", RecSalesLine."No.");
+            RecSalesLineNew.SetRange(Type, RecSalesLineNew.Type::Item);
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLine."Line Amount"
+                    ELSE
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLineNew."Line Amount";
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine."Line Amount";
+
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingAmt(L_RemainingQuantity, 'SCAPOAMT');
+        end;
+    end;
+
+    procedure PerOrderSelCustomerSelItemAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
+        L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
+        if RecSalesHeader."Ship-to Code" <> '' then
+            L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE("Document Type", RecSalesLine."Document Type");
+            RecSalesLineNew.SETRANGE("Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE("No.", RecSalesLine."No.");
+            RecSalesLineNew.SetRange(Type, RecSalesLineNew.Type::Item);
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLine."Line Amount"
+                    ELSE
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLineNew."Line Amount";
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine."Line Amount";
+
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingAmt(L_RemainingQuantity, 'SCSIPOAMT');
+        end;
+    end;
+
+    procedure PerOrderSelCustomerSelItemCatAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        RecItem: Record Item;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
+        L_MaxOrderQty.SetRange("Item Code", ItemCat);
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
+        if RecSalesHeader."Ship-to Code" <> '' then
+            L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE("Document Type", RecSalesLine."Document Type");
+            RecSalesLineNew.SETRANGE("Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SetRange(Type, RecSalesLineNew.Type::Item);
+            //RecSalesLineNew.SETRANGE("No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    RecItem.Reset();
+                    RecItem.SetRange("No.", RecSalesLineNew."No.");
+                    RecItem.SetRange("Item Category Code", ItemCat);
+                    if RecItem.FindFirst() then begin
+                        IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                            L_DayOrderQty := L_DayOrderQty + RecSalesLine."Line Amount"
+                        ELSE
+                            L_DayOrderQty := L_DayOrderQty + RecSalesLineNew."Line Amount";
+                    end;
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine.Quantity;
+
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingAmt(L_RemainingQuantity, 'SCSICPOAMT');
+        end;
+    end;
+
+
+    procedure PerOrderSelCustomerGroupAllItemAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Customer Price Group");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE("Document Type", RecSalesLine."Document Type");
+            RecSalesLineNew.SETRANGE("Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE("No.", RecSalesLine."No.");
+            RecSalesLineNew.SetRange(Type, RecSalesLineNew.Type::Item);
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLine."Line Amount"
+                    ELSE
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLineNew."Line Amount";
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine."Line Amount";
+
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingAmt(L_RemainingQuantity, 'SCGAPOAMT');
+        end;
+    end;
+
+    procedure PerOrderSelCustomerGroupSelItemAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Customer Price Group");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
+        L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE("Document Type", RecSalesLine."Document Type");
+            RecSalesLineNew.SETRANGE("Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE("No.", RecSalesLine."No.");
+            RecSalesLineNew.SetRange("Customer Price Group", RecSalesLine."Customer Price Group");
+            RecSalesLineNew.SetRange(Type, RecSalesLineNew.Type::Item);
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLine."Line Amount"
+                    ELSE
+                        L_DayOrderQty := L_DayOrderQty + RecSalesLineNew."Line Amount";
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine."Line Amount";
+
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingAmt(L_RemainingQuantity, 'SCGSIPOAMT');
+        end;
+    end;
+
+    procedure PerOrderSelCustomerGroupSelItemCatAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        RecItem: Record Item;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Customer Price Group");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
+        L_MaxOrderQty.SetRange("Item Code", ItemCat);
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE("Document Type", RecSalesLine."Document Type");
+            RecSalesLineNew.SETRANGE("Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SetRange("Customer Price Group", RecSalesLine."Customer Price Group");
+            RecSalesLineNew.SetRange(Type, RecSalesLineNew.Type::Item);
+            //RecSalesLineNew.SETRANGE("No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    RecItem.Reset();
+                    RecItem.SetRange("No.", RecSalesLineNew."No.");
+                    RecItem.SetRange("Item Category Code", ItemCat);
+                    if RecItem.FindFirst() then begin
+                        IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                            L_DayOrderQty := L_DayOrderQty + RecSalesLine."Line Amount"
+                        ELSE
+                            L_DayOrderQty := L_DayOrderQty + RecSalesLineNew."Line Amount";
+                    end;
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine."Line Amount";
+
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingAmt(L_RemainingQuantity, 'SCGSICPOAMT');
+        end;
+    end;
+
+    procedure PerDayAllCustomerAllItemAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60600;
+        L_DayWiseShippedQty: Query 60601;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"All Customer");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+            L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+            L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+            END;
+            L_DayWiseQty.CLOSE;
+
+            L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseShippedQty.OPEN;
+            WHILE L_DayWiseShippedQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseShippedQty.Sum_Amt;
+            END;
+            L_DayWiseShippedQty.CLOSE;
+
+            // Added additonal code for checking the quantity for the particular Order ++
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_OrderQty := L_OrderQty + RecSalesLine."Line Amount"
+                    ELSE
+                        L_OrderQty := L_OrderQty + RecSalesLineNew."Line Amount";
+
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine."Line Amount";
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingAmt(L_RemainingQuantity, 'AAPDAMT');
+        end;
+    end;
+
+    procedure PerDayAllCustomerSelItemAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60600;
+        L_DayWiseShippedQty: Query 60601;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"All Customer");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
+        L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+            L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+            L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+            END;
+            L_DayWiseQty.CLOSE;
+
+            L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseShippedQty.OPEN;
+            WHILE L_DayWiseShippedQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseShippedQty.Sum_Amt;
+            END;
+            L_DayWiseShippedQty.CLOSE;
+
+            // Added additonal code for checking the quantity for the particular Order ++
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_OrderQty := L_OrderQty + RecSalesLine."Line Amount"
+                    ELSE
+                        L_OrderQty := L_OrderQty + RecSalesLineNew."Line Amount";
+
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine."Line Amount";
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingAmt(L_RemainingQuantity, 'ASIPDAMT');
+        end;
+    end;
+
+
+    procedure PerDayAllCustomerSelItemCatAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60600;
+        L_DayWiseShippedQty: Query 60601;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"All Customer");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
+        L_MaxOrderQty.SetRange("Item Code", ItemCat);
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+            L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+            L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+            //L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+            END;
+            L_DayWiseQty.CLOSE;
+
+            L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+            //L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Item_Category_Code, ItemCat);
+            L_DayWiseShippedQty.OPEN;
+            WHILE L_DayWiseShippedQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseShippedQty.Sum_Amt;
+            END;
+            L_DayWiseShippedQty.CLOSE;
+
+            // Added additonal code for checking the quantity for the particular Order ++
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+            //RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+            RecSalesLine.SetRange("Item Category Code", ItemCat);
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_OrderQty := L_OrderQty + RecSalesLine."Line Amount"
+                    ELSE
+                        L_OrderQty := L_OrderQty + RecSalesLineNew."Line Amount";
+
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine."Line Amount";
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingAmt(L_RemainingQuantity, 'ASICPDAMT');
+        end;
+    end;
+
+
+    procedure PerDaySelCustomerAllItemAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60600;
+        L_DayWiseShippedQty: Query 60601;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        if RecSalesHeader."Ship-to Code" <> '' then
+            L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+            L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+            L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+            END;
+            L_DayWiseQty.CLOSE;
+
+            L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseShippedQty.OPEN;
+            WHILE L_DayWiseShippedQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseShippedQty.Sum_Amt;
+            END;
+            L_DayWiseShippedQty.CLOSE;
+
+            // Added additonal code for checking the quantity for the particular Order ++
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_OrderQty := L_OrderQty + RecSalesLine."Line Amount"
+                    ELSE
+                        L_OrderQty := L_OrderQty + RecSalesLineNew."Line Amount";
+
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine."Line Amount";
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingAmt(L_RemainingQuantity, 'SCAPDAMT');
+        end;
+    end;
+
+    procedure PerDaySelCustomerSelItemAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60600;
+        L_DayWiseShippedQty: Query 60601;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
+        L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        if RecSalesHeader."Ship-to Code" <> '' then
+            L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+            L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+            L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+            END;
+            L_DayWiseQty.CLOSE;
+
+            L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseShippedQty.OPEN;
+            WHILE L_DayWiseShippedQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseShippedQty.Sum_Amt;
+            END;
+            L_DayWiseShippedQty.CLOSE;
+
+            // Added additonal code for checking the quantity for the particular Order ++
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_OrderQty := L_OrderQty + RecSalesLine."Line Amount"
+                    ELSE
+                        L_OrderQty := L_OrderQty + RecSalesLineNew."Line Amount";
+
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine."Line Amount";
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingAmt(L_RemainingQuantity, 'SCSIPDAMT');
+        end;
+    end;
+
+    procedure PerDaySelCustomerSelItemCatAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60600;
+        L_DayWiseShippedQty: Query 60601;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
+        L_MaxOrderQty.SetRange("Item Code", ItemCat);
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        if RecSalesHeader."Ship-to Code" <> '' then
+            L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+            L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+            L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+            //L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+            END;
+            L_DayWiseQty.CLOSE;
+
+            L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+            //L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Item_Category_Code, ItemCat);
+            L_DayWiseShippedQty.OPEN;
+            WHILE L_DayWiseShippedQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseShippedQty.Sum_Amt;
+            END;
+            L_DayWiseShippedQty.CLOSE;
+
+            // Added additonal code for checking the quantity for the particular Order ++
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+            //RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+            RecSalesLine.SetRange("Item Category Code", ItemCat);
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_OrderQty := L_OrderQty + RecSalesLine."Line Amount"
+                    ELSE
+                        L_OrderQty := L_OrderQty + RecSalesLineNew."Line Amount";
+
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine."Line Amount";
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingAmt(L_RemainingQuantity, 'SCSICPDAMT');
+        end;
+    end;
+
+
+    procedure PerDaySelCustomerGroupAllItemAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60600;
+        L_DayWiseShippedQty: Query 60601;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Customer Price Group");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+            L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+            //L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseQty.SetRange(L_DayWiseQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+            END;
+            L_DayWiseQty.CLOSE;
+
+            //L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+            //L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseShippedQty.OPEN;
+            WHILE L_DayWiseShippedQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseShippedQty.Sum_Amt;
+            END;
+            L_DayWiseShippedQty.CLOSE;
+
+            // Added additonal code for checking the quantity for the particular Order ++
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_OrderQty := L_OrderQty + RecSalesLine."Line Amount"
+                    ELSE
+                        L_OrderQty := L_OrderQty + RecSalesLineNew."Line Amount";
+
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine."Line Amount";
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingAmt(L_RemainingQuantity, 'SCGAPDAMT');
+        end;
+    end;
+
+    procedure PerDaySelCustomerGroupSelItemAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60600;
+        L_DayWiseShippedQty: Query 60601;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Customer Price Group");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
+        L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+            L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+            //L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseQty.SetRange(L_DayWiseQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+            END;
+            L_DayWiseQty.CLOSE;
+
+            //L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+            L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+            //L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+            L_DayWiseShippedQty.OPEN;
+            WHILE L_DayWiseShippedQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseShippedQty.Sum_Amt;
+            END;
+            L_DayWiseShippedQty.CLOSE;
+
+            // Added additonal code for checking the quantity for the particular Order ++
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_OrderQty := L_OrderQty + RecSalesLine."Line Amount"
+                    ELSE
+                        L_OrderQty := L_OrderQty + RecSalesLineNew."Line Amount";
+
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine."Line Amount";
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingAmt(L_RemainingQuantity, 'SCGSIPDAMT');
+        end;
+    end;
+
+    procedure PerDaySelCustomerGroupSelItemCatAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60600;
+        L_DayWiseShippedQty: Query 60601;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Customer Price Group");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
+        L_MaxOrderQty.SetRange("Item Code", ItemCat);
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+            L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
+            L_DayWiseQty.SetRange(L_DayWiseQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+            END;
+            L_DayWiseQty.CLOSE;
+
+
+            L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+            L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+            L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Item_Category_Code, ItemCat);
+            L_DayWiseShippedQty.OPEN;
+            WHILE L_DayWiseShippedQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseShippedQty.Sum_Amt;
+            END;
+            L_DayWiseShippedQty.CLOSE;
+
+            // Added additonal code for checking the quantity for the particular Order ++
+            RecSalesLineNew.RESET;
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+            RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+            RecSalesLineNew.SetRange("Item Category Code", ItemCat);
+            IF RecSalesLineNew.FINDSET THEN BEGIN
+                REPEAT
+                    IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                        L_OrderQty := L_OrderQty + RecSalesLine."Line Amount"
+                    ELSE
+                        L_OrderQty := L_OrderQty + RecSalesLineNew."Line Amount";
+
+                UNTIL RecSalesLineNew.NEXT = 0;
+            END
+            ELSE
+                L_OrderQty := RecSalesLine."Line Amount";
+            L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+            CheckingRemainingAmt(L_RemainingQuantity, 'SCGSICPDAMT');
+        end;
+    end;
+
+    procedure PerMonthAllCustomerAllItemAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: date; Edate: Date)
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60600;
+        L_DayWiseShippedQty: Query 60601;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"All Customer");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
+                L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+                L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+                L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+                L_DayWiseQty.OPEN;
+                WHILE L_DayWiseQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+                END;
+                L_DayWiseQty.CLOSE;
+
+                L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+                L_DayWiseShippedQty.OPEN;
+                WHILE L_DayWiseShippedQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseShippedQty.Sum_Amt;
+                END;
+                L_DayWiseShippedQty.CLOSE;
+
+                // Added additonal code for checking the quantity for the particular Order ++
+                RecSalesLineNew.RESET;
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+                IF RecSalesLineNew.FINDSET THEN BEGIN
+                    REPEAT
+                        IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                            L_OrderQty := L_OrderQty + RecSalesLine."Line Amount"
+                        ELSE
+                            L_OrderQty := L_OrderQty + RecSalesLineNew."Line Amount";
+
+                    UNTIL RecSalesLineNew.NEXT = 0;
+                END
+                ELSE
+                    L_OrderQty := RecSalesLine."Line Amount";
+                L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                CheckingRemainingAmt(L_RemainingQuantity, 'AAPMAMT');
+            end;
+        end;
+    end;
+
+    procedure PerMonthAllCustomerSelItemAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60600;
+        L_DayWiseShippedQty: Query 60601;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"All Customer");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
+        L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
+                L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+                L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+                L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+                L_DayWiseQty.OPEN;
+                WHILE L_DayWiseQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+                END;
+                L_DayWiseQty.CLOSE;
+
+                L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+                L_DayWiseShippedQty.OPEN;
+                WHILE L_DayWiseShippedQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseShippedQty.Sum_Amt;
+                END;
+                L_DayWiseShippedQty.CLOSE;
+
+                // Added additonal code for checking the quantity for the particular Order ++
+                RecSalesLineNew.RESET;
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+                IF RecSalesLineNew.FINDSET THEN BEGIN
+                    REPEAT
+                        IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                            L_OrderQty := L_OrderQty + RecSalesLine."Line Amount"
+                        ELSE
+                            L_OrderQty := L_OrderQty + RecSalesLineNew."Line Amount";
+
+                    UNTIL RecSalesLineNew.NEXT = 0;
+                END
+                ELSE
+                    L_OrderQty := RecSalesLine."Line Amount";
+                L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                CheckingRemainingAmt(L_RemainingQuantity, 'ASIPMAMT');
+            end;
+        End;
+    end;
+
+    procedure PerMonthAllCustomerSelItemCatAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60600;
+        L_DayWiseShippedQty: Query 60601;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"All Customer");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
+        L_MaxOrderQty.SetRange("Item Code", ItemCat);
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
+                L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+                L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+                L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                //L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+                L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
+                L_DayWiseQty.OPEN;
+                WHILE L_DayWiseQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+                END;
+                L_DayWiseQty.CLOSE;
+
+                L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                //L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+                L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Item_Category_Code, ItemCat);
+                L_DayWiseShippedQty.OPEN;
+                WHILE L_DayWiseShippedQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseShippedQty.Sum_Amt;
+                END;
+                L_DayWiseShippedQty.CLOSE;
+
+                // Added additonal code for checking the quantity for the particular Order ++
+                RecSalesLineNew.RESET;
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+                //RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+                RecSalesLine.SetRange("Item Category Code", ItemCat);
+                IF RecSalesLineNew.FINDSET THEN BEGIN
+                    REPEAT
+                        IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                            L_OrderQty := L_OrderQty + RecSalesLine."Line Amount"
+                        ELSE
+                            L_OrderQty := L_OrderQty + RecSalesLineNew."Line Amount";
+
+                    UNTIL RecSalesLineNew.NEXT = 0;
+                END
+                ELSE
+                    L_OrderQty := RecSalesLine."Line Amount";
+                L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                CheckingRemainingAmt(L_RemainingQuantity, 'ASICPMAMT');
+            end;
+        End;
+    end;
+
+    procedure PerMonthSelCustomerAllItemAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60600;
+        L_DayWiseShippedQty: Query 60601;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
+        if RecSalesHeader."Ship-to Code" <> '' then
+            L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
+                L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+                L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+                L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+                L_DayWiseQty.OPEN;
+                WHILE L_DayWiseQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+                END;
+                L_DayWiseQty.CLOSE;
+
+                L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+                L_DayWiseShippedQty.OPEN;
+                WHILE L_DayWiseShippedQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseShippedQty.Sum_Amt;
+                END;
+                L_DayWiseShippedQty.CLOSE;
+
+                // Added additonal code for checking the quantity for the particular Order ++
+                RecSalesLineNew.RESET;
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+                IF RecSalesLineNew.FINDSET THEN BEGIN
+                    REPEAT
+                        IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                            L_OrderQty := L_OrderQty + RecSalesLine."Line Amount"
+                        ELSE
+                            L_OrderQty := L_OrderQty + RecSalesLineNew."Line Amount";
+
+                    UNTIL RecSalesLineNew.NEXT = 0;
+                END
+                ELSE
+                    L_OrderQty := RecSalesLine."Line Amount";
+                L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                CheckingRemainingAmt(L_RemainingQuantity, 'SCAPMAMT');
+            end;
+        end;
+    end;
+
+    procedure PerMonthSelCustomerSelItemAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60600;
+        L_DayWiseShippedQty: Query 60601;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
+        L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
+        if RecSalesHeader."Ship-to Code" <> '' then
+            L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
+                L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+                L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+                L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+                L_DayWiseQty.OPEN;
+                WHILE L_DayWiseQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+                END;
+                L_DayWiseQty.CLOSE;
+
+                L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+                L_DayWiseShippedQty.OPEN;
+                WHILE L_DayWiseShippedQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseShippedQty.Sum_Amt;
+                END;
+                L_DayWiseShippedQty.CLOSE;
+
+                // Added additonal code for checking the quantity for the particular Order ++
+                RecSalesLineNew.RESET;
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+                IF RecSalesLineNew.FINDSET THEN BEGIN
+                    REPEAT
+                        IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                            L_OrderQty := L_OrderQty + RecSalesLine."Line Amount"
+                        ELSE
+                            L_OrderQty := L_OrderQty + RecSalesLineNew."Line Amount";
+
+                    UNTIL RecSalesLineNew.NEXT = 0;
+                END
+                ELSE
+                    L_OrderQty := RecSalesLine."Line Amount";
+                L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                CheckingRemainingAmt(L_RemainingQuantity, 'SCSIPMAMT');
+            end;
+        end;
+    end;
+
+    procedure PerMonthSelCustomerSelItemCatAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60600;
+        L_DayWiseShippedQty: Query 60601;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
+        L_MaxOrderQty.SetRange("Item Code", ItemCat);
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
+        if RecSalesHeader."Ship-to Code" <> '' then
+            L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
+                L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+                L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+                L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                //L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+                L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
+                L_DayWiseQty.OPEN;
+                WHILE L_DayWiseQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+                END;
+                L_DayWiseQty.CLOSE;
+
+                L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                //L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+                L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Item_Category_Code, ItemCat);
+                L_DayWiseShippedQty.OPEN;
+                WHILE L_DayWiseShippedQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseShippedQty.Sum_Amt;
+                END;
+                L_DayWiseShippedQty.CLOSE;
+
+                // Added additonal code for checking the quantity for the particular Order ++
+                RecSalesLineNew.RESET;
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+                //RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+                RecSalesLine.SetRange("Item Category Code", ItemCat);
+                IF RecSalesLineNew.FINDSET THEN BEGIN
+                    REPEAT
+                        IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                            L_OrderQty := L_OrderQty + RecSalesLine."Line Amount"
+                        ELSE
+                            L_OrderQty := L_OrderQty + RecSalesLineNew."Line Amount";
+
+                    UNTIL RecSalesLineNew.NEXT = 0;
+                END
+                ELSE
+                    L_OrderQty := RecSalesLine."Line Amount";
+                L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                CheckingRemainingAmt(L_RemainingQuantity, 'SCSICPMAMT');
+            end;
+        end;
+    end;
+
+
+    procedure PerMonthSelCustomerGroupAllItemAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60600;
+        L_DayWiseShippedQty: Query 60601;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Customer Price Group");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
+                L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+                L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+                //L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+                L_DayWiseQty.SetRange(L_DayWiseQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+                L_DayWiseQty.OPEN;
+                WHILE L_DayWiseQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+                END;
+                L_DayWiseQty.CLOSE;
+
+                //L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+                //L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+                L_DayWiseShippedQty.OPEN;
+                WHILE L_DayWiseShippedQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseShippedQty.Sum_Amt;
+                END;
+                L_DayWiseShippedQty.CLOSE;
+
+                // Added additonal code for checking the quantity for the particular Order ++
+                RecSalesLineNew.RESET;
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+                IF RecSalesLineNew.FINDSET THEN BEGIN
+                    REPEAT
+                        IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                            L_OrderQty := L_OrderQty + RecSalesLine."Line Amount"
+                        ELSE
+                            L_OrderQty := L_OrderQty + RecSalesLineNew."Line Amount";
+
+                    UNTIL RecSalesLineNew.NEXT = 0;
+                END
+                ELSE
+                    L_OrderQty := RecSalesLine."Line Amount";
+                L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                CheckingRemainingAmt(L_RemainingQuantity, 'SCGAPMAMT');
+            end;
+        end;
+    end;
+
+    procedure PerMonthSelCustomerGroupSelItemAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60600;
+        L_DayWiseShippedQty: Query 60601;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Customer Price Group");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
+        L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
+                L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+                L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+                //L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
+                L_DayWiseQty.SetRange(L_DayWiseQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+                L_DayWiseQty.OPEN;
+                WHILE L_DayWiseQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+                END;
+                L_DayWiseQty.CLOSE;
+
+                //L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
+                L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+                //L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
+                L_DayWiseShippedQty.OPEN;
+                WHILE L_DayWiseShippedQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseShippedQty.Sum_Amt;
+                END;
+                L_DayWiseShippedQty.CLOSE;
+
+                // Added additonal code for checking the quantity for the particular Order ++
+                RecSalesLineNew.RESET;
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."No.", RecSalesLine."No.");
+                IF RecSalesLineNew.FINDSET THEN BEGIN
+                    REPEAT
+                        IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                            L_OrderQty := L_OrderQty + RecSalesLine."Line Amount"
+                        ELSE
+                            L_OrderQty := L_OrderQty + RecSalesLineNew."Line Amount";
+
+                    UNTIL RecSalesLineNew.NEXT = 0;
+                END
+                ELSE
+                    L_OrderQty := RecSalesLine.Quantity;
+                L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                CheckingRemainingAmt(L_RemainingQuantity, 'SCGSIPMAMT');
+            end;
+        end;
+    end;
+
+    procedure PerMonthSelCustomerGroupSelItemCatAmt(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    var
+        L_MaxOrderQty: Record 60600;
+        L_DayOrderQty: Decimal;
+        L_RemainingQuantity: Decimal;
+        RecSalesLineNew: Record "Sales Line";
+        L_OrderQty: Decimal;
+        L_DayWiseQty: Query 60600;
+        L_DayWiseShippedQty: Query 60601;
+    begin
+        Clear(L_DayOrderQty);
+        Clear(L_RemainingQuantity);
+        Clear(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");
+        L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Customer Price Group");
+        L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
+        L_MaxOrderQty.SetRange("Item Code", ItemCat);
+        L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
+        L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
+                L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
+                L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
+                L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
+                L_DayWiseQty.SetRange(L_DayWiseQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+                L_DayWiseQty.OPEN;
+                WHILE L_DayWiseQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+                END;
+                L_DayWiseQty.CLOSE;
+
+
+                L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Customer_Price_Group, RecSalesLine."Customer Price Group");
+                L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
+                L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Item_Category_Code, ItemCat);
+                L_DayWiseShippedQty.OPEN;
+                WHILE L_DayWiseShippedQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseShippedQty.Sum_Amt;
+                END;
+                L_DayWiseShippedQty.CLOSE;
+
+                // Added additonal code for checking the quantity for the particular Order ++
+                RecSalesLineNew.RESET;
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."Document Type", RecSalesLineNew."Document Type"::Order);
+                RecSalesLineNew.SETRANGE(RecSalesLineNew."Document No.", RecSalesLine."Document No.");
+                RecSalesLineNew.SetRange("Item Category Code", ItemCat);
+                IF RecSalesLineNew.FINDSET THEN BEGIN
+                    REPEAT
+                        IF RecSalesLineNew."Line No." = RecSalesLine."Line No." THEN
+                            L_OrderQty := L_OrderQty + RecSalesLine."Line Amount"
+                        ELSE
+                            L_OrderQty := L_OrderQty + RecSalesLineNew."Line Amount";
+
+                    UNTIL RecSalesLineNew.NEXT = 0;
+                END
+                ELSE
+                    L_OrderQty := RecSalesLine.Quantity;
+                L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                CheckingRemainingAmt(L_RemainingQuantity, 'SCGSICPMAMT');
+            end;
+        end;
+    end;
+
+
+
+
+    //salman
+
+
+    procedure CheckingRemainingQty(RemQty: Decimal; Errcode: code[20])
+    var
+    begin
+        IF RemQty < 0 THEN
+            ERROR('Maximum quantity allowed has been exceeded. Error Code:' + Errcode);
+    end;
+
+    procedure CheckingRemainingAmt(RemAmt: Decimal; Errcode: code[20])
+    var
+    begin
+        IF RemAmt < 0 THEN
+            ERROR('Maximum amount allowed has been exceeded. Error Code:' + Errcode);
+    end;
+    //Azhar--
+
+    procedure CheckMaxOrderQty(P_SalesLine: Record 37): Decimal
+    var
+        L_MaxOrderQty: Record 60600;
+        L_SalesLine: Record 37;
+        L_DayWiseQty: Query 60602;
+        L_DayOrderQty: Decimal;
+        L_DayWiseShippedQty: Query 60603;
+        L_CustomerPriceGroup: Record 6;
+        L_Customer: Record 18;
+        L_RemainingQuantity: Decimal;
+        L_SalesLine2: Record 37;
+        L_OrderQty: Decimal;
+        SalesHeader: Record "Sales Header";
+        RecSalesLineNew: Record "Sales Line";
+    begin
+        //IF CurrFieldNo <> FIELDNO(Quantity) THEN//azhar
+        //    EXIT;//azhar
+        IF CurrFieldNoGlo <> 15 THEN//azhar
+            EXIT;//azhar
+        //GetSalesHeader;//azhar
+        SalesHeader.Reset();
+        SalesHeader.SetRange("No.", P_SalesLine."Document No.");
+        if SalesHeader.FindFirst() then;
+
+        CLEAR(L_DayWiseQty);
+        CLEAR(L_RemainingQuantity);
+        CLEAR(L_OrderQty);
+        // For the Type Customer
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Customer);// Manish ++
+        L_MaxOrderQty.SETRANGE("Sales Code", P_SalesLine."Sell-to Customer No.");
+        L_MaxOrderQty.SETRANGE("Item Code", P_SalesLine."No.");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);// Manish 25/04/2017 ++ Added to filter quantity restriction for greater than 0
+        IF SalesHeader."Ship-to Code" <> '' THEN
+            L_MaxOrderQty.SETRANGE("Ship-to Code", SalesHeader."Ship-to Code");
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            IF L_MaxOrderQty."Quantity Restriction" = L_MaxOrderQty."Quantity Restriction"::"Per Day" THEN BEGIN
+                L_DayWiseQty.SETRANGE(Document_Type, P_SalesLine."Document Type");
+                L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', P_SalesLine."Document No.");
+                L_DayWiseQty.SETRANGE(Sell_to_Customer_No, P_SalesLine."Sell-to Customer No.");
+                L_DayWiseQty.SETRANGE(Ship_to_Code, SalesHeader."Ship-to Code");
+                L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+                L_DayWiseQty.SETRANGE(No, P_SalesLine."No.");
+                L_DayWiseQty.OPEN;
+                WHILE L_DayWiseQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+                END;
+                L_DayWiseQty.CLOSE;
+
+
+                L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, P_SalesLine."Sell-to Customer No.");
+                L_DayWiseShippedQty.SETRANGE(Ship_to_Code, SalesHeader."Ship-to Code");
+                L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+                L_DayWiseShippedQty.SETRANGE(No, P_SalesLine."No.");
+                L_DayWiseShippedQty.OPEN;
+                WHILE L_DayWiseShippedQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+                END;
+                L_DayWiseShippedQty.CLOSE;
+
+                L_SalesLine2.RESET;
+                L_SalesLine2.SETRANGE(L_SalesLine2."Document Type", L_SalesLine2."Document Type"::Order);
+                L_SalesLine2.SETRANGE(L_SalesLine2."Document No.", P_SalesLine."Document No.");
+                L_SalesLine2.SETRANGE(L_SalesLine2."No.", P_SalesLine."No.");
+                IF L_SalesLine2.FINDSET THEN BEGIN
+                    REPEAT
+                        IF L_SalesLine2."Line No." = P_SalesLine."Line No." THEN
+                            L_OrderQty := L_OrderQty + P_SalesLine.Quantity
+                        ELSE
+                            L_OrderQty := L_OrderQty + L_SalesLine2.Quantity;
+                    UNTIL L_SalesLine2.NEXT = 0;
+                END
+                ELSE
+                    L_OrderQty := P_SalesLine.Quantity;
+
+
+                L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty)
+            END
+            //azhar++
+            else
+                if L_MaxOrderQty."Quantity Restriction" = L_MaxOrderQty."Quantity Restriction"::"Per Month" THEN begin
+                    if (L_MaxOrderQty."Start Date" <= SalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= SalesHeader."Order Date") then begin
+                        L_DayWiseQty.SETRANGE(Document_Type, P_SalesLine."Document Type");
+                        L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', P_SalesLine."Document No.");//azhar
+                        L_DayWiseQty.SETRANGE(Sell_to_Customer_No, P_SalesLine."Sell-to Customer No.");
+                        L_DayWiseQty.SETRANGE(Ship_to_Code, SalesHeader."Ship-to Code");
+                        L_DayWiseQty.SetFilter(Order_Date, '%1..%2', L_MaxOrderQty."Start Date", L_MaxOrderQty."End Date");
+                        L_DayWiseQty.SETRANGE(No, P_SalesLine."No.");
+                        L_DayWiseQty.OPEN;
+                        WHILE L_DayWiseQty.READ DO BEGIN
+                            L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+                        END;
+                        L_DayWiseQty.CLOSE;
+
+
+                        L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, P_SalesLine."Sell-to Customer No.");
+                        L_DayWiseShippedQty.SETRANGE(Ship_to_Code, SalesHeader."Ship-to Code");
+                        L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', L_MaxOrderQty."Start Date", L_MaxOrderQty."End Date");
+                        L_DayWiseShippedQty.SETRANGE(No, P_SalesLine."No.");
+                        L_DayWiseShippedQty.OPEN;
+                        WHILE L_DayWiseShippedQty.READ DO BEGIN
+                            L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+                        END;
+                        L_DayWiseShippedQty.CLOSE;
+
+                        L_SalesLine2.RESET;
+                        L_SalesLine2.SETRANGE(L_SalesLine2."Document Type", L_SalesLine2."Document Type"::Order);
+                        L_SalesLine2.SETRANGE(L_SalesLine2."Document No.", P_SalesLine."Document No.");
+                        L_SalesLine2.SETRANGE(L_SalesLine2."No.", P_SalesLine."No.");
+                        IF L_SalesLine2.FINDSET THEN BEGIN
+                            REPEAT
+                                IF L_SalesLine2."Line No." = P_SalesLine."Line No." THEN
+                                    L_OrderQty := L_OrderQty + P_SalesLine.Quantity
+                                ELSE
+                                    L_OrderQty := L_OrderQty + L_SalesLine2.Quantity;
+                            UNTIL L_SalesLine2.NEXT = 0;
+                        END
+                        ELSE
+                            L_OrderQty := P_SalesLine.Quantity;
+
+
+                        L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty)
+                    end;
+                end
+                //azhar--
+                ELSE BEGIN
+
+                    L_DayWiseQty.SETRANGE(Document_Type, P_SalesLine."Document Type");
+                    L_DayWiseQty.SETRANGE(L_DayWiseQty.Doc_No, P_SalesLine."Document No.");
+                    L_DayWiseQty.SETRANGE(Sell_to_Customer_No, P_SalesLine."Sell-to Customer No.");
+                    L_DayWiseQty.SETRANGE(Ship_to_Code, SalesHeader."Ship-to Code");
+                    //L_DayWiseQty.SETRANGE(Order_Date,WORKDATE);
+                    L_DayWiseQty.SETRANGE(No, P_SalesLine."No.");
+                    L_DayWiseQty.OPEN;
+                    WHILE L_DayWiseQty.READ DO BEGIN
+                        L_DayOrderQty := L_DayWiseQty.Sum_Quantity;
+                    END;
+                    L_DayWiseQty.CLOSE;
+
+                    L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
+                END;
+
+
+            EXIT(L_RemainingQuantity);
+
+
+        END;
+
+        // For the Customer Price Group ++
+        CLEAR(L_DayOrderQty);
+        CLEAR(L_RemainingQuantity);
+        CLEAR(L_DayWiseQty);
+        CLEAR(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"Customer Price Group");// Manish ++
+
+        L_Customer.RESET;
+        L_Customer.SETRANGE("No.", P_SalesLine."Bill-to Customer No.");
+        IF L_Customer.FINDFIRST THEN;
+
+        L_MaxOrderQty.SETRANGE("Sales Code", L_Customer."Customer Price Group");
+        L_MaxOrderQty.SETRANGE("Item Code", P_SalesLine."No.");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);// Manish 25/04/2017 ++ Added to filter quantity restriction for greater than 0
+
+        IF SalesHeader."Ship-to Code" <> '' THEN
+            L_MaxOrderQty.SETRANGE("Ship-to Code", SalesHeader."Ship-to Code");
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            IF L_MaxOrderQty."Quantity Restriction" = L_MaxOrderQty."Quantity Restriction"::"Per Day" THEN BEGIN
+                L_DayWiseQty.SETRANGE(Document_Type, P_SalesLine."Document Type");
+                L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', P_SalesLine."Document No.");
+                L_DayWiseQty.SETRANGE(Sell_to_Customer_No, P_SalesLine."Sell-to Customer No.");
+                L_DayWiseQty.SETRANGE(Ship_to_Code, SalesHeader."Ship-to Code");
+                L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+                L_DayWiseQty.SETRANGE(No, P_SalesLine."No.");
+                L_DayWiseQty.OPEN;
+                WHILE L_DayWiseQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+                END;
+                L_DayWiseQty.CLOSE;
+
+                L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, P_SalesLine."Sell-to Customer No.");
+                L_DayWiseShippedQty.SETRANGE(Ship_to_Code, SalesHeader."Ship-to Code");
+                L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+                L_DayWiseShippedQty.SETRANGE(No, P_SalesLine."No.");
+                L_DayWiseShippedQty.OPEN;
+                WHILE L_DayWiseShippedQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+                END;
+                L_DayWiseShippedQty.CLOSE;
+
+                L_SalesLine2.RESET;
+                L_SalesLine2.SETRANGE(L_SalesLine2."Document Type", L_SalesLine2."Document Type"::Order);
+                L_SalesLine2.SETRANGE(L_SalesLine2."Document No.", P_SalesLine."Document No.");
+                L_SalesLine2.SETRANGE(L_SalesLine2."No.", P_SalesLine."No.");
+                IF L_SalesLine2.FINDSET THEN BEGIN
+                    REPEAT
+                        IF L_SalesLine2."Line No." = P_SalesLine."Line No." THEN
+                            L_OrderQty := L_OrderQty + P_SalesLine.Quantity
+                        ELSE
+                            L_OrderQty := L_OrderQty + L_SalesLine2.Quantity;
+                    UNTIL L_SalesLine2.NEXT = 0;
+                END
+                ELSE
+                    L_OrderQty := P_SalesLine.Quantity;
+
+                L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty)
+            END
+            //azhar++
+            else
+                if L_MaxOrderQty."Quantity Restriction" = L_MaxOrderQty."Quantity Restriction"::"Per Month" THEN begin
+                    if (L_MaxOrderQty."Start Date" <= SalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= SalesHeader."Order Date") then begin
+                        L_DayWiseQty.SETRANGE(Document_Type, P_SalesLine."Document Type");
+                        L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', P_SalesLine."Document No.");
+                        L_DayWiseQty.SETRANGE(Sell_to_Customer_No, P_SalesLine."Sell-to Customer No.");
+                        L_DayWiseQty.SETRANGE(Ship_to_Code, SalesHeader."Ship-to Code");
+                        L_DayWiseQty.SetFilter(Order_Date, '%1..%2', L_MaxOrderQty."Start Date", L_MaxOrderQty."End Date");
+                        L_DayWiseQty.SETRANGE(No, P_SalesLine."No.");
+                        L_DayWiseQty.OPEN;
+                        WHILE L_DayWiseQty.READ DO BEGIN
+                            L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+                        END;
+                        L_DayWiseQty.CLOSE;
+
+                        L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, P_SalesLine."Sell-to Customer No.");
+                        L_DayWiseShippedQty.SETRANGE(Ship_to_Code, SalesHeader."Ship-to Code");
+                        L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', L_MaxOrderQty."Start Date", L_MaxOrderQty."End Date");
+                        L_DayWiseShippedQty.SETRANGE(No, P_SalesLine."No.");
+                        L_DayWiseShippedQty.OPEN;
+                        WHILE L_DayWiseShippedQty.READ DO BEGIN
+                            L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+                        END;
+                        L_DayWiseShippedQty.CLOSE;
+
+                        L_SalesLine2.RESET;
+                        L_SalesLine2.SETRANGE(L_SalesLine2."Document Type", L_SalesLine2."Document Type"::Order);
+                        L_SalesLine2.SETRANGE(L_SalesLine2."Document No.", P_SalesLine."Document No.");
+                        L_SalesLine2.SETRANGE(L_SalesLine2."No.", P_SalesLine."No.");
+                        IF L_SalesLine2.FINDSET THEN BEGIN
+                            REPEAT
+                                IF L_SalesLine2."Line No." = P_SalesLine."Line No." THEN
+                                    L_OrderQty := L_OrderQty + P_SalesLine.Quantity
+                                ELSE
+                                    L_OrderQty := L_OrderQty + L_SalesLine2.Quantity;
+                            UNTIL L_SalesLine2.NEXT = 0;
+                        END
+                        ELSE
+                            L_OrderQty := P_SalesLine.Quantity;
+
+                        L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty)
+                    end;
+                end
+                //azhar--
+                ELSE BEGIN
+
+                    L_DayWiseQty.SETRANGE(Document_Type, P_SalesLine."Document Type");
+                    L_DayWiseQty.SETRANGE(L_DayWiseQty.Doc_No, P_SalesLine."Document No.");
+                    //L_DayWiseQty.SETRANGE(Sell_to_Customer_No,P_SalesLine."Sell-to Customer No.");
+                    L_DayWiseQty.SETRANGE(Ship_to_Code, SalesHeader."Ship-to Code");
+                    //L_DayWiseQty.SETRANGE(Order_Date,WORKDATE);
+                    L_DayWiseQty.SETRANGE(No, P_SalesLine."No.");
+                    L_DayWiseQty.OPEN;
+                    WHILE L_DayWiseQty.READ DO BEGIN
+                        L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+                    END;
+                    L_DayWiseQty.CLOSE;
+                    L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
+
+                END;
+
+
+            EXIT(L_RemainingQuantity);
+
+        END;
+
+        // For the All Customer ++ Correct code for the All Customer scenerio
+        CLEAR(L_DayOrderQty);
+        CLEAR(L_RemainingQuantity);
+        CLEAR(L_DayWiseQty);
+        CLEAR(L_OrderQty);
+        L_MaxOrderQty.RESET;
+        L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::"All Customer");// Manish ++
+        L_MaxOrderQty.SETRANGE("Item Code", P_SalesLine."No.");
+        L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);// Manish 25/04/2017 ++ Added to filter quantity restriction for greater than 0
+                                                              //IF SalesHeader."Ship-to Code" <> '' THEN
+                                                              //L_MaxOrderQty.SETRANGE("Ship-to Code",SalesHeader."Ship-to Code");
+        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
+            IF L_MaxOrderQty."Quantity Restriction" = L_MaxOrderQty."Quantity Restriction"::"Per Day" THEN BEGIN
+                L_DayWiseQty.SetRange(Document_Type, P_SalesLine."Document Type");//azhar
+                L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', P_SalesLine."Document No.");
+                L_DayWiseQty.SETRANGE(Sell_to_Customer_No, P_SalesLine."Sell-to Customer No.");
+                L_DayWiseQty.SETRANGE(Ship_to_Code, SalesHeader."Ship-to Code");
+                L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
+                L_DayWiseQty.SETRANGE(No, P_SalesLine."No.");
+                L_DayWiseQty.OPEN;
+                WHILE L_DayWiseQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+                END;
+                L_DayWiseQty.CLOSE;
+
+                L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, P_SalesLine."Sell-to Customer No.");
+                L_DayWiseShippedQty.SETRANGE(Ship_to_Code, SalesHeader."Ship-to Code");
+                L_DayWiseShippedQty.SETRANGE(Order_Date, WORKDATE);
+                L_DayWiseShippedQty.SETRANGE(No, P_SalesLine."No.");
+                L_DayWiseShippedQty.OPEN;
+                WHILE L_DayWiseShippedQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+                END;
+                L_DayWiseShippedQty.CLOSE;
+
+                // Added additonal code for checking the quantity for the particular Order ++
+                L_SalesLine2.RESET;
+                L_SalesLine2.SETRANGE(L_SalesLine2."Document Type", L_SalesLine2."Document Type"::Order);
+                L_SalesLine2.SETRANGE(L_SalesLine2."Document No.", P_SalesLine."Document No.");
+                L_SalesLine2.SETRANGE(L_SalesLine2."No.", P_SalesLine."No.");
+                IF L_SalesLine2.FINDSET THEN BEGIN
+                    REPEAT
+                        IF L_SalesLine2."Line No." = P_SalesLine."Line No." THEN
+                            L_OrderQty := L_OrderQty + P_SalesLine.Quantity
+                        ELSE
+                            L_OrderQty := L_OrderQty + L_SalesLine2.Quantity;
+
+                    UNTIL L_SalesLine2.NEXT = 0;
+                END
+                ELSE
+                    L_OrderQty := P_SalesLine.Quantity;
+                //MESSAGE(FORMAT(L_OrderQty));
+                // Added additonal code for checking the quantity for the particular Order --
+
+                L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+
+            END
+            //azhar++
+            else
+                if L_MaxOrderQty."Quantity Restriction" = L_MaxOrderQty."Quantity Restriction"::"Per Month" THEN BEGIN
+                    if (L_MaxOrderQty."Start Date" <= SalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= SalesHeader."Order Date") then begin
+                        L_DayWiseQty.SetRange(Document_Type, P_SalesLine."Document Type");//azhar
+                        L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', P_SalesLine."Document No.");//azhar
+                        L_DayWiseQty.SETRANGE(Sell_to_Customer_No, P_SalesLine."Sell-to Customer No.");
+                        L_DayWiseQty.SETRANGE(Ship_to_Code, SalesHeader."Ship-to Code");
+                        L_DayWiseQty.SetFilter(Order_Date, '%1..%2', L_MaxOrderQty."Start Date", L_MaxOrderQty."End Date");
+                        L_DayWiseQty.SETRANGE(No, P_SalesLine."No.");
+                        L_DayWiseQty.OPEN;
+                        WHILE L_DayWiseQty.READ DO BEGIN
+                            L_DayOrderQty += L_DayWiseQty.Sum_Quantity;
+                        END;
+                        L_DayWiseQty.CLOSE;
+
+                        L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, P_SalesLine."Sell-to Customer No.");
+                        L_DayWiseShippedQty.SETRANGE(Ship_to_Code, SalesHeader."Ship-to Code");
+                        L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', L_MaxOrderQty."Start Date", L_MaxOrderQty."End Date");
+                        L_DayWiseShippedQty.SETRANGE(No, P_SalesLine."No.");
+                        L_DayWiseShippedQty.OPEN;
+                        WHILE L_DayWiseShippedQty.READ DO BEGIN
+                            L_DayOrderQty += L_DayWiseShippedQty.Sum_Quantity;
+                        END;
+                        L_DayWiseShippedQty.CLOSE;
+
+                        // Added additonal code for checking the quantity for the particular Order ++
+                        L_SalesLine2.RESET;
+                        L_SalesLine2.SETRANGE(L_SalesLine2."Document Type", L_SalesLine2."Document Type"::Order);
+                        L_SalesLine2.SETRANGE(L_SalesLine2."Document No.", P_SalesLine."Document No.");
+                        L_SalesLine2.SETRANGE(L_SalesLine2."No.", P_SalesLine."No.");
+                        IF L_SalesLine2.FINDSET THEN BEGIN
+                            REPEAT
+                                IF L_SalesLine2."Line No." = P_SalesLine."Line No." THEN
+                                    L_OrderQty := L_OrderQty + P_SalesLine.Quantity
+                                ELSE
+                                    L_OrderQty := L_OrderQty + L_SalesLine2.Quantity;
+
+                            UNTIL L_SalesLine2.NEXT = 0;
+                        END
+                        ELSE
+                            L_OrderQty := P_SalesLine.Quantity;
+                        //MESSAGE(FORMAT(L_OrderQty));
+                        // Added additonal code for checking the quantity for the particular Order --
+
+                        L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                    end;
+                END
+                //azhar--
+                ELSE BEGIN
+                    RecSalesLineNew.RESET;
+                    RecSalesLineNew.SETRANGE("Document Type", P_SalesLine."Document Type");
+                    RecSalesLineNew.SETRANGE("Document No.", P_SalesLine."Document No.");
+                    RecSalesLineNew.SETRANGE("No.", P_SalesLine."No.");
+                    IF RecSalesLineNew.FINDSET THEN BEGIN
+                        REPEAT
+                            IF RecSalesLineNew."Line No." = P_SalesLine."Line No." THEN
+                                L_DayOrderQty := L_DayOrderQty + P_SalesLine.Quantity
+                            ELSE
+                                L_DayOrderQty := L_DayOrderQty + RecSalesLineNew.Quantity;
+                        UNTIL RecSalesLineNew.NEXT = 0;
+                    END
+                    ELSE
+                        L_OrderQty := P_SalesLine.Quantity;
+
+                    L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
+                END;
+
+            EXIT(L_RemainingQuantity);
+
+        END;
+    end;
+}
