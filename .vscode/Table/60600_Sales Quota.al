@@ -78,8 +78,10 @@ table 60600 "Sales Quota"
                 L_Item: Record 27;
             begin
                 CLEAR("Item Description");
+                Clear("Warehouse Class code");
                 if L_Item.GET("Item Code") then begin
                     "Item Description" := L_Item.Description;
+                    "Warehouse Class code" := L_Item."Warehouse Class Code";
                 end else begin
                     "Item Description" := '';
                 end;
@@ -87,6 +89,10 @@ table 60600 "Sales Quota"
             end;
         }
         field(4; "Item Description"; Code[50])
+        {
+            Editable = false;
+        }
+        field(17; "Warehouse Class code"; Code[50])
         {
             Editable = false;
         }
@@ -116,6 +122,11 @@ table 60600 "Sales Quota"
         field(5; "Maximum Quantity"; Decimal)
         {
             DataClassification = ToBeClassified;
+        }
+        field(80002; "Warning Type"; Option)
+        {
+            OptionCaptionML = ENU = ' ,warning,error';
+            OptionMembers = " ",warning,error;
         }
         field(6; "Quantity Restriction"; Option)
         {

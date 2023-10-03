@@ -192,6 +192,10 @@ page 60603 "Quota By Amount"
                 {
                     ApplicationArea = all;
                 }
+                field("Warehouse Class code"; rec."Warehouse Class code")
+                {
+                    ApplicationArea = all;
+                }
                 field("Item Description"; Rec."Item Description")
                 {
                     ApplicationArea = all;

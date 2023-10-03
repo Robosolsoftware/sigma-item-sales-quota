@@ -186,6 +186,10 @@ page 60602 "Quota By Quantity"
                 {
                     ApplicationArea = all;
                 }
+                field("Warehouse Class code"; rec."Warehouse Class code")
+                {
+                    ApplicationArea = all;
+                }
                 field("Item Description"; Rec."Item Description")
                 {
                     ApplicationArea = all;
@@ -199,6 +203,10 @@ page 60602 "Quota By Quantity"
                     ApplicationArea = all;
                 }
                 field("Maximum Quantity"; Rec."Maximum Quantity")
+                {
+                    ApplicationArea = all;
+                }
+                field("Warning Type"; rec."Warning Type")
                 {
                     ApplicationArea = all;
                 }
