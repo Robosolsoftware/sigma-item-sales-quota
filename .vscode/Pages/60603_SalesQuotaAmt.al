@@ -7,6 +7,7 @@ page 60603 "Quota By Amount"
     SaveValues = true;
     ObsoleteState = Pending;
     SourceTable = "Sales Quota";
+    Caption = 'Sales Quota By Amount';
 
     layout
     {

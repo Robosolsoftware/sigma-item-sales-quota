@@ -6,6 +6,7 @@ page 60602 "Quota By Quantity"
     PageType = List;
     SaveValues = true;
     SourceTable = "Sales Quota";
+    Caption = 'Sales Quota By Quantity';
 
     layout
     {

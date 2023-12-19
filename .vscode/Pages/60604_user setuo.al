@@ -4,9 +4,13 @@ pageextension 60604 UserSetupSalesQ extends "User Setup"
     {
         addafter(PhoneNo)
         {
-            field("Override Max. Qty. Calculation"; Rec."Override Max. Qty. Calculation")
+            field("SO Override MaxQty Calculation"; Rec."SO Override MaxQty Calculation")
             {
                 ApplicationArea = all;
+            }
+            field("PO Override MaxQty Calculation"; Rec."PO Override MaxQty Calculation")
+            {
+                ApplicationArea = All;
             }
         }
     }

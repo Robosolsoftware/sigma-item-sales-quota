@@ -12,7 +12,8 @@ codeunit 60600 "All Event"
 
     [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnAfterValidateEvent', 'Quantity', false, false)]
     local procedure QuantityEvent(var Rec: Record "Sales Line"; CurrFieldNo: Integer)
-
+    var
+        tes: Record "User Setup";
     begin
 
         /*//old Working Code fromelite++
@@ -59,7 +60,7 @@ codeunit 60600 "All Event"
                 CurrFieldNoGlo := CurrFieldNo;
                 CLEAR(RemainingQuantity);
                 IF RecUserSetup.GET(USERID) THEN BEGIN
-                    IF NOT RecUserSetup."Override Max. Qty. Calculation" THEN BEGIN
+                    IF NOT RecUserSetup."SO Override MaxQty Calculation" THEN BEGIN
                         CheckMaxOrderQty2(Rec);
                     END;
                 END ELSE BEGIN
@@ -76,7 +77,7 @@ codeunit 60600 "All Event"
         //NewCode Azhar++
         if Rec."Line Amount" <> 0 then begin
             IF RecUserSetup.GET(USERID) THEN BEGIN
-                IF NOT RecUserSetup."Override Max. Qty. Calculation" THEN BEGIN
+                IF NOT RecUserSetup."SO Override MaxQty Calculation" THEN BEGIN
                     CheckMaxOrderamt(Rec);
                 END;
             END ELSE BEGIN
@@ -92,7 +93,7 @@ codeunit 60600 "All Event"
         //NewCode Azhar++
         if Rec."Line Amount" <> 0 then begin
             IF RecUserSetup.GET(USERID) THEN BEGIN
-                IF NOT RecUserSetup."Override Max. Qty. Calculation" THEN BEGIN
+                IF NOT RecUserSetup."SO Override MaxQty Calculation" THEN BEGIN
                     CheckMaxOrderamt(Rec);
                 END;
             END ELSE BEGIN
@@ -108,7 +109,7 @@ codeunit 60600 "All Event"
         //NewCode Azhar++
         if Rec."Line Amount" <> 0 then begin
             IF RecUserSetup.GET(USERID) THEN BEGIN
-                IF NOT RecUserSetup."Override Max. Qty. Calculation" THEN BEGIN
+                IF NOT RecUserSetup."SO Override MaxQty Calculation" THEN BEGIN
                     CheckMaxOrderamt(Rec);
                 END;
             END ELSE BEGIN
@@ -124,7 +125,7 @@ codeunit 60600 "All Event"
         //NewCode Azhar++
         if Rec."Line Amount" <> 0 then begin
             IF RecUserSetup.GET(USERID) THEN BEGIN
-                IF NOT RecUserSetup."Override Max. Qty. Calculation" THEN BEGIN
+                IF NOT RecUserSetup."SO Override MaxQty Calculation" THEN BEGIN
                     CheckMaxOrderamt(Rec);
                 END;
             END ELSE BEGIN
@@ -395,7 +396,7 @@ codeunit 60600 "All Event"
                 L_OrderQty := RecSalesLine.Quantity;
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-            CheckingRemainingQty(L_RemainingQuantity, 'AAPOQ', WarningtypeOpion);
+            CheckingRemainingQty(L_RemainingQuantity, 'AAPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
         end;
     end;
 
@@ -438,7 +439,7 @@ codeunit 60600 "All Event"
                 L_OrderQty := RecSalesLine.Quantity;
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-            CheckingRemainingQty(L_RemainingQuantity, 'ASIPOQ', WarningtypeOpion);
+            CheckingRemainingQty(L_RemainingQuantity, 'ASIPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
         end;
     end;
 
@@ -487,7 +488,7 @@ codeunit 60600 "All Event"
                 L_OrderQty := RecSalesLine.Quantity;
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-            CheckingRemainingQty(L_RemainingQuantity, 'ASICPOQ', WarningtypeOpion);
+            CheckingRemainingQty(L_RemainingQuantity, 'ASICPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
         end;
     end;
 
@@ -532,7 +533,7 @@ codeunit 60600 "All Event"
                 L_OrderQty := RecSalesLine.Quantity;
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-            CheckingRemainingQty(L_RemainingQuantity, 'SCAPOQ', WarningtypeOpion);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCAPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
         end;
     end;
 
@@ -578,7 +579,7 @@ codeunit 60600 "All Event"
                 L_OrderQty := RecSalesLine.Quantity;
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-            CheckingRemainingQty(L_RemainingQuantity, 'SCSIPOQ', WarningtypeOpion);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCSIPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
         end;
     end;
 
@@ -630,7 +631,7 @@ codeunit 60600 "All Event"
                 L_OrderQty := RecSalesLine.Quantity;
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-            CheckingRemainingQty(L_RemainingQuantity, 'SCSICPOQ', WarningtypeOpion);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCSICPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
         end;
     end;
 
@@ -673,7 +674,7 @@ codeunit 60600 "All Event"
                 L_OrderQty := RecSalesLine.Quantity;
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-            CheckingRemainingQty(L_RemainingQuantity, 'SCGAPOQ', WarningtypeOpion);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCGAPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
         end;
     end;
 
@@ -718,7 +719,7 @@ codeunit 60600 "All Event"
                 L_OrderQty := RecSalesLine.Quantity;
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-            CheckingRemainingQty(L_RemainingQuantity, 'SCGSIPOQ', WarningtypeOpion);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCGSIPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
         end;
     end;
 
@@ -769,7 +770,7 @@ codeunit 60600 "All Event"
                 L_OrderQty := RecSalesLine.Quantity;
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-            CheckingRemainingQty(L_RemainingQuantity, 'SCGSICPOQ', WarningtypeOpion);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCGSICPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
         end;
     end;
 
@@ -835,7 +836,7 @@ codeunit 60600 "All Event"
             ELSE
                 L_OrderQty := RecSalesLine.Quantity;
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-            CheckingRemainingQty(L_RemainingQuantity, 'AAPDQ', WarningtypeOpion);
+            CheckingRemainingQty(L_RemainingQuantity, 'AAPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
         end;
     end;
 
@@ -902,7 +903,7 @@ codeunit 60600 "All Event"
             ELSE
                 L_OrderQty := RecSalesLine.Quantity;
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-            CheckingRemainingQty(L_RemainingQuantity, 'ASIPDQ', WarningtypeOpion);
+            CheckingRemainingQty(L_RemainingQuantity, 'ASIPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
         end;
     end;
 
@@ -973,7 +974,7 @@ codeunit 60600 "All Event"
             ELSE
                 L_OrderQty := RecSalesLine.Quantity;
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-            CheckingRemainingQty(L_RemainingQuantity, 'ASICPDQ', WarningtypeOpion);
+            CheckingRemainingQty(L_RemainingQuantity, 'ASICPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
         end;
     end;
 
@@ -1042,7 +1043,7 @@ codeunit 60600 "All Event"
             ELSE
                 L_OrderQty := RecSalesLine.Quantity;
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-            CheckingRemainingQty(L_RemainingQuantity, 'SCAPDQ', WarningtypeOpion);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCAPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
         end;
     end;
 
@@ -1112,7 +1113,7 @@ codeunit 60600 "All Event"
             ELSE
                 L_OrderQty := RecSalesLine.Quantity;
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-            CheckingRemainingQty(L_RemainingQuantity, 'SCSIPDQ', WarningtypeOpion);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCSIPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
         end;
     end;
 
@@ -1185,7 +1186,7 @@ codeunit 60600 "All Event"
             ELSE
                 L_OrderQty := RecSalesLine.Quantity;
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-            CheckingRemainingQty(L_RemainingQuantity, 'SCSICPDQ', WarningtypeOpion);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCSICPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
         end;
     end;
 
@@ -1254,7 +1255,7 @@ codeunit 60600 "All Event"
             ELSE
                 L_OrderQty := RecSalesLine.Quantity;
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-            CheckingRemainingQty(L_RemainingQuantity, 'SCGAPDQ', WarningtypeOpion);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCGAPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
         end;
     end;
 
@@ -1324,7 +1325,7 @@ codeunit 60600 "All Event"
             ELSE
                 L_OrderQty := RecSalesLine.Quantity;
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-            CheckingRemainingQty(L_RemainingQuantity, 'SCGSIPDQ', WarningtypeOpion);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCGSIPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
         end;
     end;
 
@@ -1391,7 +1392,7 @@ codeunit 60600 "All Event"
             ELSE
                 L_OrderQty := RecSalesLine.Quantity;
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-            CheckingRemainingQty(L_RemainingQuantity, 'SCGSICPDQ', WarningtypeOpion);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCGSICPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
         end;
     end;
 
@@ -1459,7 +1460,7 @@ codeunit 60600 "All Event"
                     ELSE
                         L_OrderQty := RecSalesLine.Quantity;
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-                    CheckingRemainingQty(L_RemainingQuantity, 'AAPMQ', WarningtypeOpion);
+                    CheckingRemainingQty(L_RemainingQuantity, 'AAPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
                 end;
             until L_MaxOrderQty.Next = 0;
         end;
@@ -1531,7 +1532,7 @@ codeunit 60600 "All Event"
                     ELSE
                         L_OrderQty := RecSalesLine.Quantity;
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-                    CheckingRemainingQty(L_RemainingQuantity, 'ASIPMQ', WarningtypeOpion);
+                    CheckingRemainingQty(L_RemainingQuantity, 'ASIPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
                 end;
             until L_MaxOrderQty.Next = 0;
         End;
@@ -1606,7 +1607,7 @@ codeunit 60600 "All Event"
                     ELSE
                         L_OrderQty := RecSalesLine.Quantity;
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-                    CheckingRemainingQty(L_RemainingQuantity, 'ASICPMQ', WarningtypeOpion);
+                    CheckingRemainingQty(L_RemainingQuantity, 'ASICPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
                 end;
             until L_MaxOrderQty.Next = 0;
         End;
@@ -1680,7 +1681,7 @@ codeunit 60600 "All Event"
                     ELSE
                         L_OrderQty := RecSalesLine.Quantity;
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-                    CheckingRemainingQty(L_RemainingQuantity, 'SCAPMQ', WarningtypeOpion);
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCAPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
                 end;
             until L_MaxOrderQty.Next = 0;
         end;
@@ -1754,7 +1755,7 @@ codeunit 60600 "All Event"
                     ELSE
                         L_OrderQty := RecSalesLine.Quantity;
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-                    CheckingRemainingQty(L_RemainingQuantity, 'SCSIPMQ', WarningtypeOpion);
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCSIPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
                 end;
             until L_MaxOrderQty.Next = 0;
         end;
@@ -1832,7 +1833,7 @@ codeunit 60600 "All Event"
                     ELSE
                         L_OrderQty := RecSalesLine.Quantity;
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-                    CheckingRemainingQty(L_RemainingQuantity, 'SCSICPMQ', WarningtypeOpion);
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCSICPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
                 end;
             until L_MaxOrderQty.Next = 0;
         end;
@@ -1906,7 +1907,7 @@ codeunit 60600 "All Event"
                     ELSE
                         L_OrderQty := RecSalesLine.Quantity;
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-                    CheckingRemainingQty(L_RemainingQuantity, 'SCGAPMQ', WarningtypeOpion);
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCGAPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
                 end;
             until L_MaxOrderQty.Next = 0;
         end;
@@ -1980,7 +1981,7 @@ codeunit 60600 "All Event"
                     ELSE
                         L_OrderQty := RecSalesLine.Quantity;
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-                    CheckingRemainingQty(L_RemainingQuantity, 'SCGSIPMQ', WarningtypeOpion);
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCGSIPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
                 end;
             until L_MaxOrderQty.Next = 0;
         end;
@@ -2051,7 +2052,7 @@ codeunit 60600 "All Event"
                     ELSE
                         L_OrderQty := RecSalesLine.Quantity;
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-                    CheckingRemainingQty(L_RemainingQuantity, 'SCGSICPMQ', WarningtypeOpion);
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCGSICPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction");
                 end;
             until L_MaxOrderQty.Next = 0;
         end;
@@ -3665,14 +3666,20 @@ codeunit 60600 "All Event"
     //salman
 
 
-    procedure CheckingRemainingQty(RemQty: Decimal; Errcode: code[20]; WarningtypeOpion: Text)
+    procedure CheckingRemainingQty(RemQty: Decimal; Errcode: code[20]; WarningtypeOpion: Text; _TotalMaxQuantity: Decimal; _QuantityRestriction: Option "Per Day","Per Order","Per Month")
     var
     begin
+        // IF RemQty < 0 THEN
+        //     if WarningtypeOpion = 'error' then
+        //         ERROR('Maximum quantity allowed has been exceeded. Error Code:' + Errcode)
+        //     else
+        //         Message('Maximum quantity allowed has been exceeded. Error Code:' + Errcode);
+
         IF RemQty < 0 THEN
             if WarningtypeOpion = 'error' then
-                ERROR('Maximum quantity allowed has been exceeded. Error Code:' + Errcode)
+                ERROR('Maximum quantity %1  %2 allowed has been exceeded.', _TotalMaxQuantity, _QuantityRestriction)
             else
-                Message('Maximum quantity allowed has been exceeded. Error Code:' + Errcode);
+                Message('Maximum quantity %1 %2 allowed has been exceeded.', _TotalMaxQuantity, _QuantityRestriction);
     end;
 
     procedure CheckingRemainingAmt(RemAmt: Decimal; Errcode: code[20])

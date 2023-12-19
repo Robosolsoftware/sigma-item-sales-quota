@@ -101,7 +101,7 @@ table 60600 "Sales Quota"
             DataClassification = ToBeClassified;
             TableRelation = if ("Item Type" = const(Item)) "Item Unit of Measure".Code where("Item No." = field("Item Code"));
         }
-        field(14; "Currency Code "; Code[10])
+        field(14; "Currency Code"; Code[10])
         {
             TableRelation = Currency;
             DataClassification = ToBeClassified;
