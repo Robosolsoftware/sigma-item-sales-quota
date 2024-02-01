@@ -5,15 +5,21 @@ table 60600 "Sales Quota"
     {
         field(1; "Sales Type"; Option)
         {
-            OptionCaption = ' ,All Customer,Customer,Customer Price Group';
-            OptionMembers = " ","All Customer",Customer,"Customer Price Group";
+            OptionCaption = ' ,All Customer,Customer,Customer Price Group,Dimension';
+            OptionMembers = " ","All Customer",Customer,"Customer Price Group",Dimension;
 
             trigger OnValidate()
             begin
-                IF ("Sales Type" = "Sales Type"::"All Customer") or ("Sales Type" = "Sales Type"::"Customer Price Group") THEN begin
+                //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+                //16th Training Points:+++++++
+                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+
+
+                IF ("Sales Type" = "Sales Type"::"All Customer") or ("Sales Type" = "Sales Type"::"Customer Price Group") or ("Sales Type" = "Sales Type"::Dimension) THEN begin
                     CLEAR("Sales Code");
                     Clear("Sales Name");
                     Clear("Ship-to Code");
+                    Clear("Dimension Value");
                 end;
             end;
         }
@@ -21,27 +27,48 @@ table 60600 "Sales Quota"
         {
             OptionCaption = 'By Quantity,By Amount';
             OptionMembers = "By Quantity","By Amount";
+
         }
         field(8; "Sales Code"; Code[20])
         {
             TableRelation = IF ("Sales Type" = CONST(Customer)) Customer
             ELSE
-            IF ("Sales Type" = CONST("Customer Price Group")) "Customer Price Group";
+            IF ("Sales Type" = CONST("Customer Price Group")) "Customer Price Group"
+            else
+            if ("Sales Type" = const(Dimension)) Dimension.Code;
+
             ValidateTableRelation = true;
             trigger OnValidate()
             var
                 Reccustomer: Record Customer;
+                L_Dimension: Record Dimension;
             begin
-                if "Sales Type" = "Sales Type"::Customer then begin
-                    Reccustomer.Reset();
-                    Reccustomer.SetRange("No.", "Sales Code");
-                    if Reccustomer.FindFirst() then begin
-                        Validate("Sales Name", Reccustomer.Name);
-                    end else begin
-                        Validate("Sales Name", '');
-                    end;
-                end else begin
-                    Validate("Sales Name", '');
+                //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+                //16th Training Points:+++++++
+                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+
+                case Rec."Sales Type" of
+                    Rec."Sales Type"::Customer:
+                        begin
+                            Reccustomer.Reset();
+                            Reccustomer.SetRange("No.", Rec."Sales Code");
+                            if Reccustomer.FindFirst() then begin
+                                Validate("Sales Name", Reccustomer.Name);
+                            end;
+                        end;
+                    Rec."Sales Type"::Dimension:
+                        begin
+                            L_Dimension.Reset();
+                            L_Dimension.SetRange(Code, Rec."Sales Code");
+                            if L_Dimension.FindFirst() then begin
+                                Validate("Sales Name", L_Dimension.Name);
+                            end;
+                        end;
+                    Rec."Sales Type"::"All Customer",
+                    Rec."Sales Type"::"Customer Price Group":
+                        begin
+                            Validate("Sales Name", '');
+                        end;
                 end;
             end;
         }
@@ -59,10 +86,15 @@ table 60600 "Sales Quota"
             trigger OnValidate()
             var
             begin
+                //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+                //16th Training Points:+++++++
+                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+
                 if ("Item Type" = "Item Type"::"All Items") or ("Item Type" = "Item Type"::"Item Category") then begin
                     Clear("Item Code");
                     Clear("Item Description");
                     Clear("Unit of Measure Code");
+                    Clear("Warehouse Class code");
                 end;
             end;
 
@@ -75,8 +107,19 @@ table 60600 "Sales Quota"
 
             trigger OnValidate()
             var
-                L_Item: Record 27;
+                L_Item: Record Item;
             begin
+                //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+                //16th Training Points:+++++++
+                if xRec."Item Code" <> '' then
+                    AllEvent.CheckPermissionForCDProducts(xRec."Item Code");
+
+
+                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+                //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+                //16th Training Points:--------
+
+
                 CLEAR("Item Description");
                 Clear("Warehouse Class code");
                 if L_Item.GET("Item Code") then begin
@@ -85,7 +128,6 @@ table 60600 "Sales Quota"
                 end else begin
                     "Item Description" := '';
                 end;
-
             end;
         }
         field(4; "Item Description"; Code[50])
@@ -100,11 +142,26 @@ table 60600 "Sales Quota"
         {
             DataClassification = ToBeClassified;
             TableRelation = if ("Item Type" = const(Item)) "Item Unit of Measure".Code where("Item No." = field("Item Code"));
+
+            trigger OnValidate()
+            begin
+                //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+                //16th Training Points:+++++++
+                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+            end;
         }
+
         field(14; "Currency Code"; Code[10])
         {
             TableRelation = Currency;
             DataClassification = ToBeClassified;
+
+            trigger OnValidate()
+            begin
+                //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+                //16th Training Points:+++++++
+                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+            end;
         }
         field(15; "No of Months"; DateFormula)
         {
@@ -112,32 +169,72 @@ table 60600 "Sales Quota"
             trigger OnValidate()
             var
             begin
+                //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+                //16th Training Points:+++++++
+                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+
                 //StartDateCalculationEnddate(Rec."No of Months");//CAS-28103-W6D1M0
             end;
         }
         field(16; "External Document No."; Code[35])
         {
             DataClassification = ToBeClassified;
+
+            trigger OnValidate()
+            begin
+                //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+                //16th Training Points:+++++++
+                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+            end;
         }
         field(5; "Maximum Quantity"; Decimal)
         {
             DataClassification = ToBeClassified;
+
+            trigger OnValidate()
+            begin
+                //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+                //16th Training Points:+++++++
+                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+            end;
         }
         field(80002; "Warning Type"; Option)
         {
-            OptionCaptionML = ENU = ' ,warning,error';
-            OptionMembers = " ",warning,error;
+            OptionCaptionML = ENU = 'warning,error';
+            OptionMembers = warning,error;
+
+            trigger OnValidate()
+            begin
+                //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+                //16th Training Points:+++++++
+                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+            end;
         }
         field(6; "Quantity Restriction"; Option)
         {
             OptionCaption = 'Per Day,Per Order,Per Month';
             OptionMembers = "Per Day","Per Order","Per Month";
 
+            trigger OnValidate()
+            begin
+                //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+                //16th Training Points:+++++++
+                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+            end;
+
         }
         field(7; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
             TableRelation = "Ship-to Address".Code WHERE("Customer No." = FIELD("Sales Code"));
+
+            trigger OnValidate()
+            begin
+                //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+                //16th Training Points:+++++++
+                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+
+            end;
         }
         field(9; "Start Date"; Date)
         {
@@ -145,6 +242,10 @@ table 60600 "Sales Quota"
             trigger OnValidate()
             var
             begin
+                //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+                //16th Training Points:+++++++
+                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+
                 if Format(Rec."No of Months") = '' then begin
                     Error('Please enter No. of Months');
                 end;
@@ -154,15 +255,48 @@ table 60600 "Sales Quota"
         field(10; "End Date"; Date)
         {
             DataClassification = ToBeClassified;
+
+            trigger OnValidate()
+            begin
+                //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+                //16th Training Points:+++++++
+                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+            end;
         }
 
         field(80000; "B2B Nav Maximum Order Id"; Code[20])
         {
             Description = 'WCL V.03-+';
+
+            trigger OnValidate()
+            begin
+                //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+                //16th Training Points:+++++++
+                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+            end;
         }
         field(80001; "B2B Nav Maximum Order IdV3"; Code[20])
         {
             Description = 'WCL V.03-+';
+
+            trigger OnValidate()
+            begin
+                //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+                //16th Training Points:+++++++
+                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+            end;
+        }
+
+        field(27; "Dimension Value"; Code[20])
+        {
+            TableRelation = "Dimension Value".Code where("Dimension Code" = field("Sales Code"));
+
+            trigger OnValidate()
+            begin
+                //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+                //16th Training Points:+++++++
+                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+            end;
         }
 
 
@@ -170,7 +304,7 @@ table 60600 "Sales Quota"
 
     keys
     {
-        key(Key1; "Sales Type", "Sales Code", "Item Type", "Item Code", "Restriction Type", "Start Date", "Ship-to Code")
+        key(Key1; "Sales Type", "Sales Code", "Item Type", "Item Code", "Restriction Type", "Start Date", "Ship-to Code", "Dimension Value", "Quantity Restriction")
         {
         }
     }
@@ -178,15 +312,30 @@ table 60600 "Sales Quota"
     fieldgroups
     {
     }
+    var
+        AllEvent: Codeunit "All Event";
 
     trigger OnInsert()
     begin
         //"Creation Date Time" :=CURRENTDATETIME;//WCL V.03
+
+        //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+        //16th Training Points:+++++++
+        AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
     end;
 
     trigger OnModify()
     begin
-        //"Update Date Time" :=CURRENTDATETIME;//WCL V.03
+        //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+        //16th Training Points:+++++++
+        AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+    end;
+
+    trigger OnDelete()
+    begin
+        //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+        //16th Training Points:+++++++
+        AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
     end;
 
     procedure StartDateCalculationEnddate(NoOfMontVar: DateFormula)

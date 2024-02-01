@@ -12,6 +12,11 @@ tableextension 60601 UserSetupSalesQ extends "User Setup"
             DataClassification = ToBeClassified;
             Caption = 'PO Override Max. Qty. Calculation';
         }
+        field(8070; "Allowed Quota Manag. for CD"; Boolean)
+        {
+            DataClassification = ToBeClassified;
+            Caption = 'Allowed Quota Management for CD';
+        }
     }
 
     var

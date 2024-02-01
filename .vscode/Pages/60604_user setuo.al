@@ -2,7 +2,7 @@ pageextension 60604 UserSetupSalesQ extends "User Setup"
 {
     layout
     {
-        addafter(PhoneNo)
+        addbefore("Salespers./Purch. Code")
         {
             field("SO Override MaxQty Calculation"; Rec."SO Override MaxQty Calculation")
             {
@@ -11,6 +11,11 @@ pageextension 60604 UserSetupSalesQ extends "User Setup"
             field("PO Override MaxQty Calculation"; Rec."PO Override MaxQty Calculation")
             {
                 ApplicationArea = All;
+            }
+            field("Allowed Quota Manag. for CD"; Rec."Allowed Quota Manag. for CD")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Specify if you want user who edit/add/remove CD product on sales quota by quantity';
             }
         }
     }

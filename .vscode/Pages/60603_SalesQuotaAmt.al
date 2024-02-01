@@ -19,24 +19,8 @@ page 60603 "Quota By Amount"
                 {
                     ApplicationArea = All;
                     trigger OnValidate()
-                    var
                     begin
-                        /*if SalesTypeFilter = SalesTypeFilter::Customer then begin
-                            SetRange("Sales Type", Rec."Sales Type"::Customer);
-                        end
-                        else
-                            if SalesTypeFilter = SalesTypeFilter::"All Customer" then begin
-                                SetRange("Sales Type", Rec."Sales Type"::"All Customer");
-                            end else begin
-                                SetRange("Sales Type", Rec."Sales Type"::"Customer Price Group");
-                            end;*/
-                        //if SalesTypeFilter = SalesTypeFilter::" " then begin
-                        //   SetFilter("Sales Type", '%1|%2|%3', SalesTypeFilter::"All Customer", SalesTypeFilter::Customer, SalesTypeFilter::"Customer Price Group");
-                        //end else begin
-                        Rec.SetRange("Sales Type", SalesTypeFilter);
-                        CurrPage.SaveRecord();
-                        CurrPage.Update(false);
-                        //end;
+                        UpdateFilter();
                     end;
 
                 }
@@ -48,6 +32,8 @@ page 60603 "Quota By Amount"
                         CustList: Page "Customer List";
                         CustPriceGrList: Page "Customer Price Groups";
                         CampaignList: Page "Campaign List";
+                        L_DimensionList: Page Dimensions;
+                        L_Dimesion: Record Dimension;
                     begin
                         if SalesTypeFilter = SalesTypeFilter::"All Customer" then
                             exit;
@@ -71,6 +57,17 @@ page 60603 "Quota By Amount"
                                     else
                                         exit(false);
                                 end;
+                            SalesTypeFilter::Dimension:
+                                begin
+                                    L_Dimesion.Reset();
+                                    L_DimensionList.LookupMode := true;
+                                    L_DimensionList.SetTableView(L_Dimesion);
+                                    if L_DimensionList.RunModal = ACTION::LookupOK then begin
+                                        L_DimensionList.GetRecord(L_Dimesion);
+                                        Text := L_Dimesion.Code;
+                                    end else
+                                        exit(false);
+                                end;
 
                         end;
 
@@ -79,9 +76,7 @@ page 60603 "Quota By Amount"
 
                     trigger OnValidate()
                     begin
-                        CurrPage.SaveRecord();
-                        Rec.SetFilter("Sales Code", SalesCodeFilter);
-                        CurrPage.Update(false);
+                        UpdateFilter();
                     end;
                 }
                 field("Item Type Filter"; ItemTypeFilter)
@@ -90,9 +85,7 @@ page 60603 "Quota By Amount"
                     trigger OnValidate()
                     var
                     begin
-                        Rec.SetRange("Item Type", ItemTypeFilter);
-                        CurrPage.SaveRecord();
-                        CurrPage.Update(false);
+                        UpdateFilter();
                     end;
                 }
                 field("Item Code Filter"; ItemCodeFilter)
@@ -135,9 +128,7 @@ page 60603 "Quota By Amount"
                     trigger OnValidate()
                     var
                     begin
-                        Rec.SetFilter("Item Code", ItemCodeFilter);
-                        CurrPage.SaveRecord();
-                        CurrPage.Update(false);
+                        UpdateFilter();
                     end;
 
                 }
@@ -145,24 +136,17 @@ page 60603 "Quota By Amount"
                 {
                     ApplicationArea = all;
                     trigger OnValidate()
-                    var
-                        FilterTokens: Codeunit "Filter Tokens";
                     begin
-                        FilterTokens.MakeDateFilter(StartingDateFilter);
-                        CurrPage.SaveRecord;
-                        if StartingDateFilter <> '' then
-                            Rec.SetFilter("Start Date", StartingDateFilter)
-                        else
-                            Rec.SetRange("Start Date");
-                        CurrPage.Update(false);
+                        UpdateFilter();
                     end;
 
                 }
 
             }
-            repeater(DataAll)
+            repeater(LinesDetails)
             {
-                ShowCaption = false;
+                ShowCaption = true;
+                Caption = 'Line Details';
                 field("Restriction Type"; Rec."Restriction Type")
                 {
                     ApplicationArea = all;
@@ -171,11 +155,7 @@ page 60603 "Quota By Amount"
                 field("Sales Type"; Rec."Sales Type")
                 {
                     ApplicationArea = all;
-                    trigger OnValidate()
-                    var
-                    begin
-                        //DefaultRestriction();
-                    end;
+                    ToolTip = 'Specifies the sales type based on the priority: "Customer", "Dimension", "All Customer", "Customer Price Group"';
                 }
                 field("Sales Code"; Rec."Sales Code")
                 {
@@ -184,6 +164,12 @@ page 60603 "Quota By Amount"
                 field("Sales Name"; Rec."Sales Name")
                 {
                     ApplicationArea = all;
+                }
+                field("Dimension Value"; Rec."Dimension Value")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'This is only for Dimension';
+                    Editable = Rec."Sales Type" = Rec."Sales Type"::Dimension;
                 }
                 field("Item Type"; Rec."Item Type")
                 {
@@ -319,12 +305,47 @@ page 60603 "Quota By Amount"
     var
         myInt: Integer;
 
-        SalesTypeFilter: Option " ","All Customer",Customer,"Customer Price Group";
-        ItemTypeFilter: Option "All Items","Item","Item Category";
+        SalesTypeFilter: Option " ","All Customer",Customer,"Customer Price Group",Dimension;
+        ItemTypeFilter: Option " ","All Items","Item","Item Category";
         SalesCodeFilter: Text;
         ItemCodeFilter: Text;
         StartingDateFilter: Text[30];
         NoOfMonthEdit: Boolean;
+
+
+    local procedure UpdateFilter()
+    var
+        FilterTokens: Codeunit "Filter Tokens";
+    begin
+        if SalesTypeFilter <> SalesTypeFilter::" " then
+            Rec.SetRange("Sales Type", SalesTypeFilter)
+        else
+            Rec.SetRange("Sales Type");
+
+        if SalesCodeFilter <> '' then
+            Rec.SetRange("Sales Code", SalesCodeFilter)
+        else
+            Rec.SetRange("Sales Code");
+
+        if ItemTypeFilter <> ItemTypeFilter::" " then
+            Rec.SetRange("Item Type", ItemTypeFilter)
+        else
+            Rec.SetRange("Item Type");
+
+        if ItemCodeFilter <> '' then
+            Rec.SetRange("Item Code", ItemCodeFilter)
+        else
+            Rec.SetRange("Item Code");
+
+        FilterTokens.MakeDateFilter(StartingDateFilter);
+        if StartingDateFilter <> '' then
+            Rec.SetFilter("Start Date", StartingDateFilter)
+        else
+            Rec.SetRange("Start Date");
+
+        CurrPage.SaveRecord();
+        CurrPage.Update(false);
+    end;
 
 
     trigger OnOpenPage()

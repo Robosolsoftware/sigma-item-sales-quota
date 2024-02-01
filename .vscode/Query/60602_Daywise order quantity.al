@@ -42,7 +42,7 @@ query 60602 "Daywise order quantity"
 
                 }
                 //Azhar--
-                column(Sum_Quantity; Quantity)
+                column(Sum_Quantity; "Outstanding Quantity")
                 {
                     Method = Sum;
                 }
