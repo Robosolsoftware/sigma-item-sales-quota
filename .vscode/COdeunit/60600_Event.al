@@ -143,7 +143,7 @@ codeunit 60600 "All Event"
         RecUserSetup: Record "User Setup";
 
     //Azhar++
-    procedure CheckMaxOrderQty2(P_SalesLine: Record 37)
+    procedure CheckMaxOrderQty2(var P_SalesLine: Record 37)
     var
         SalesHeader: Record "Sales Header";
         Recitem: Record Item;
@@ -374,7 +374,7 @@ codeunit 60600 "All Event"
 
     end;
 
-    procedure PerOrderSelDimensionSelItem(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerOrderSelDimensionSelItem(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -428,13 +428,13 @@ codeunit 60600 "All Event"
                     else
                         RemainingQuantity := L_MaxOrderQty."Maximum Quantity";
 
-                    CheckingRemainingQty(L_RemainingQuantity, 'SCAPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty));
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCAPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty), RecSalesLine);
                 end;
             until L_DefaultDimension.Next() = 0;
         end;
     end;
 
-    procedure PerOrderSelDimensionAllItem(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerOrderSelDimensionAllItem(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -488,13 +488,13 @@ codeunit 60600 "All Event"
                         RemainingQuantity := 0
                     else
                         RemainingQuantity := L_MaxOrderQty."Maximum Quantity";
-                    CheckingRemainingQty(L_RemainingQuantity, 'SCAPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty));
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCAPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty), RecSalesLine);
                 end;
             until L_DefaultDimension.Next() = 0;
         end;
     end;
 
-    procedure PerOrderSelDimensionSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerOrderSelDimensionSelItemCatQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -555,13 +555,13 @@ codeunit 60600 "All Event"
                         RemainingQuantity := 0
                     else
                         RemainingQuantity := L_MaxOrderQty."Maximum Quantity";
-                    CheckingRemainingQty(L_RemainingQuantity, 'SCAPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty));
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCAPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty), RecSalesLine);
                 end;
             until L_DefaultDimension.Next() = 0;
         end;
     end;
 
-    procedure PerDaySelDimensionSelItem(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerDaySelDimensionSelItem(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -641,14 +641,14 @@ codeunit 60600 "All Event"
                         L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                         if L_RemainingQuantity < 0 then
                             L_RemainingQuantity := 0;
-                        CheckingRemainingQty(L_RemainingQuantity, 'SCSIPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+                        CheckingRemainingQty(L_RemainingQuantity, 'SCSIPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
                     end;
                 end;
             until L_DefaultDimension.Next() = 0;
         end;
     end;
 
-    procedure PerDaySelDimensionAllItem(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerDaySelDimensionAllItem(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -729,14 +729,14 @@ codeunit 60600 "All Event"
                         L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                         if L_RemainingQuantity < 0 then
                             L_RemainingQuantity := 0;
-                        CheckingRemainingQty(L_RemainingQuantity, 'SCSIPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+                        CheckingRemainingQty(L_RemainingQuantity, 'SCSIPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
                     end;
                 end;
             until L_DefaultDimension.Next() = 0;
         end;
     end;
 
-    procedure PerDaySelDimensionSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerDaySelDimensionSelItemCatQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -818,14 +818,14 @@ codeunit 60600 "All Event"
                         if L_RemainingQuantity < 0 then
                             L_RemainingQuantity := 0;
 
-                        CheckingRemainingQty(L_RemainingQuantity, 'SCSICPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+                        CheckingRemainingQty(L_RemainingQuantity, 'SCSICPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
                     end;
                 end;
             until L_DefaultDimension.Next() = 0
         end;
     end;
 
-    procedure PerMonthSelDimensionSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    procedure PerMonthSelDimensionSelItemQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -908,7 +908,7 @@ codeunit 60600 "All Event"
                                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                                 if L_RemainingQuantity < 0 then
                                     L_RemainingQuantity := 0;
-                                CheckingRemainingQty(L_RemainingQuantity, 'SCSIPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+                                CheckingRemainingQty(L_RemainingQuantity, 'SCSIPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
                             end;
                         until L_MaxOrderQty.Next = 0;
                     end;
@@ -917,7 +917,7 @@ codeunit 60600 "All Event"
         end;
     end;
 
-    procedure PerMonthSelDimensionAllItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    procedure PerMonthSelDimensionAllItemQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -999,7 +999,7 @@ codeunit 60600 "All Event"
                                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                                 if L_RemainingQuantity < 0 then
                                     L_RemainingQuantity := 0;
-                                CheckingRemainingQty(L_RemainingQuantity, 'SCSIPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+                                CheckingRemainingQty(L_RemainingQuantity, 'SCSIPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
                             end;
                         until L_MaxOrderQty.Next = 0;
                     end;
@@ -1008,7 +1008,7 @@ codeunit 60600 "All Event"
         end;
     end;
 
-    procedure PerMonthSelDimensionSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    procedure PerMonthSelDimensionSelItemCatQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -1093,7 +1093,7 @@ codeunit 60600 "All Event"
                                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                                 if L_RemainingQuantity < 0 then
                                     L_RemainingQuantity := 0;
-                                CheckingRemainingQty(L_RemainingQuantity, 'SCSICPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+                                CheckingRemainingQty(L_RemainingQuantity, 'SCSICPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
                             end;
                         until L_MaxOrderQty.Next = 0;
                     end;
@@ -1102,7 +1102,7 @@ codeunit 60600 "All Event"
         end;
     end;
 
-    procedure PerOrderAllCustomerAllItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerOrderAllCustomerAllItemQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -1143,11 +1143,11 @@ codeunit 60600 "All Event"
                 RemainingQuantity := 0
             else
                 RemainingQuantity := L_MaxOrderQty."Maximum Quantity";
-            CheckingRemainingQty(L_RemainingQuantity, 'AAPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty));
+            CheckingRemainingQty(L_RemainingQuantity, 'AAPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty), RecSalesLine);
         end;
     end;
 
-    procedure PerOrderAllCustomerSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerOrderAllCustomerSelItemQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -1189,11 +1189,11 @@ codeunit 60600 "All Event"
                 RemainingQuantity := 0
             else
                 RemainingQuantity := L_MaxOrderQty."Maximum Quantity";
-            CheckingRemainingQty(L_RemainingQuantity, 'ASIPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty));
+            CheckingRemainingQty(L_RemainingQuantity, 'ASIPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty), RecSalesLine);
         end;
     end;
 
-    procedure PerOrderAllCustomerSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerOrderAllCustomerSelItemCatQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -1241,11 +1241,11 @@ codeunit 60600 "All Event"
                 RemainingQuantity := 0
             else
                 RemainingQuantity := L_MaxOrderQty."Maximum Quantity";
-            CheckingRemainingQty(L_RemainingQuantity, 'ASICPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty));
+            CheckingRemainingQty(L_RemainingQuantity, 'ASICPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty), RecSalesLine);
         end;
     end;
 
-    procedure PerOrderSelCustomerAllItem(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerOrderSelCustomerAllItem(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -1290,11 +1290,11 @@ codeunit 60600 "All Event"
             else
                 RemainingQuantity := L_MaxOrderQty."Maximum Quantity";
 
-            CheckingRemainingQty(L_RemainingQuantity, 'SCAPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty));
+            CheckingRemainingQty(L_RemainingQuantity, 'SCAPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty), RecSalesLine);
         end;
     end;
 
-    procedure PerOrderSelCustomerSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerOrderSelCustomerSelItemQty(Var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -1340,11 +1340,11 @@ codeunit 60600 "All Event"
             else
                 RemainingQuantity := L_MaxOrderQty."Maximum Quantity";
 
-            CheckingRemainingQty(L_RemainingQuantity, 'SCSIPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty));
+            CheckingRemainingQty(L_RemainingQuantity, 'SCSIPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty), RecSalesLine);
         end;
     end;
 
-    procedure PerOrderSelCustomerSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerOrderSelCustomerSelItemCatQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -1396,11 +1396,11 @@ codeunit 60600 "All Event"
             else
                 RemainingQuantity := L_MaxOrderQty."Maximum Quantity";
 
-            CheckingRemainingQty(L_RemainingQuantity, 'SCSICPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty));
+            CheckingRemainingQty(L_RemainingQuantity, 'SCSICPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty), RecSalesLine);
         end;
     end;
 
-    procedure PerOrderSelCustomerGroupAllItem(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerOrderSelCustomerGroupAllItem(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -1442,11 +1442,11 @@ codeunit 60600 "All Event"
                 RemainingQuantity := 0
             else
                 RemainingQuantity := L_MaxOrderQty."Maximum Quantity";
-            CheckingRemainingQty(L_RemainingQuantity, 'SCGAPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty));
+            CheckingRemainingQty(L_RemainingQuantity, 'SCGAPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty), RecSalesLine);
         end;
     end;
 
-    procedure PerOrderSelCustomerGroupSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerOrderSelCustomerGroupSelItemQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -1490,11 +1490,11 @@ codeunit 60600 "All Event"
                 RemainingQuantity := 0
             else
                 RemainingQuantity := L_MaxOrderQty."Maximum Quantity";
-            CheckingRemainingQty(L_RemainingQuantity, 'SCGSIPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty));
+            CheckingRemainingQty(L_RemainingQuantity, 'SCGSIPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty), RecSalesLine);
         end;
     end;
 
-    procedure PerOrderSelCustomerGroupSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerOrderSelCustomerGroupSelItemCatQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -1544,11 +1544,11 @@ codeunit 60600 "All Event"
                 RemainingQuantity := 0
             else
                 RemainingQuantity := L_MaxOrderQty."Maximum Quantity";
-            CheckingRemainingQty(L_RemainingQuantity, 'SCGSICPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty));
+            CheckingRemainingQty(L_RemainingQuantity, 'SCGSICPOQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", (L_DayOrderQty + L_OrderQty), RecSalesLine);
         end;
     end;
 
-    procedure PerDayAllCustomerAllItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerDayAllCustomerAllItemQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -1615,11 +1615,11 @@ codeunit 60600 "All Event"
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
             if L_RemainingQuantity < 0 then
                 L_RemainingQuantity := 0;
-            CheckingRemainingQty(L_RemainingQuantity, 'AAPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'AAPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
         end;
     end;
 
-    procedure PerDayAllCustomerSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerDayAllCustomerSelItemQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -1687,12 +1687,12 @@ codeunit 60600 "All Event"
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
             if L_RemainingQuantity < 0 then
                 L_RemainingQuantity := 0;
-            CheckingRemainingQty(L_RemainingQuantity, 'ASIPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'ASIPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
         end;
     end;
 
 
-    procedure PerDayAllCustomerSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerDayAllCustomerSelItemCatQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -1761,11 +1761,11 @@ codeunit 60600 "All Event"
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
             if L_RemainingQuantity < 0 then
                 L_RemainingQuantity := 0;
-            CheckingRemainingQty(L_RemainingQuantity, 'ASICPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'ASICPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
         end;
     end;
 
-    procedure PerDaySelCustomerAllItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerDaySelCustomerAllItemQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -1835,11 +1835,11 @@ codeunit 60600 "All Event"
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
             if L_RemainingQuantity < 0 then
                 L_RemainingQuantity := 0;
-            CheckingRemainingQty(L_RemainingQuantity, 'SCAPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCAPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
         end;
     end;
 
-    procedure PerDaySelCustomerSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerDaySelCustomerSelItemQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -1914,11 +1914,11 @@ codeunit 60600 "All Event"
             if L_RemainingQuantity < 0 then
                 L_RemainingQuantity := 0;
 
-            CheckingRemainingQty(L_RemainingQuantity, 'SCSIPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCSIPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
         end;
     end;
 
-    procedure PerDaySelCustomerSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerDaySelCustomerSelItemCatQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -1989,11 +1989,11 @@ codeunit 60600 "All Event"
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
             if L_RemainingQuantity < 0 then
                 L_RemainingQuantity := 0;
-            CheckingRemainingQty(L_RemainingQuantity, 'SCSICPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCSICPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
         end;
     end;
 
-    procedure PerDaySelCustomerGroupAllItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerDaySelCustomerGroupAllItemQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -2062,11 +2062,11 @@ codeunit 60600 "All Event"
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
             if L_RemainingQuantity < 0 then
                 L_RemainingQuantity := 0;
-            CheckingRemainingQty(L_RemainingQuantity, 'SCGAPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCGAPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
         end;
     end;
 
-    procedure PerDaySelCustomerGroupSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerDaySelCustomerGroupSelItemQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -2135,11 +2135,11 @@ codeunit 60600 "All Event"
             if L_RemainingQuantity < 0 then
                 L_RemainingQuantity := 0;
 
-            CheckingRemainingQty(L_RemainingQuantity, 'SCGSIPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCGSIPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
         end;
     end;
 
-    procedure PerDaySelCustomerGroupSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
+    procedure PerDaySelCustomerGroupSelItemCatQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20])
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -2205,11 +2205,11 @@ codeunit 60600 "All Event"
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
             if L_RemainingQuantity < 0 then
                 L_RemainingQuantity := 0;
-            CheckingRemainingQty(L_RemainingQuantity, 'SCGSICPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+            CheckingRemainingQty(L_RemainingQuantity, 'SCGSICPDQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
         end;
     end;
 
-    procedure PerMonthAllCustomerAllItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: date; Edate: Date)
+    procedure PerMonthAllCustomerAllItemQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: date; Edate: Date)
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -2278,13 +2278,13 @@ codeunit 60600 "All Event"
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                     if L_RemainingQuantity < 0 then
                         L_RemainingQuantity := 0;
-                    CheckingRemainingQty(L_RemainingQuantity, 'AAPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+                    CheckingRemainingQty(L_RemainingQuantity, 'AAPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
                 end;
             until L_MaxOrderQty.Next = 0;
         end;
     end;
 
-    procedure PerMonthAllCustomerSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    procedure PerMonthAllCustomerSelItemQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -2354,13 +2354,13 @@ codeunit 60600 "All Event"
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                     if L_RemainingQuantity < 0 then
                         L_RemainingQuantity := 0;
-                    CheckingRemainingQty(L_RemainingQuantity, 'ASIPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+                    CheckingRemainingQty(L_RemainingQuantity, 'ASIPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
                 end;
             until L_MaxOrderQty.Next = 0;
         End;
     end;
 
-    procedure PerMonthAllCustomerSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    procedure PerMonthAllCustomerSelItemCatQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -2432,13 +2432,13 @@ codeunit 60600 "All Event"
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                     if L_RemainingQuantity < 0 then
                         L_RemainingQuantity := 0;
-                    CheckingRemainingQty(L_RemainingQuantity, 'ASICPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+                    CheckingRemainingQty(L_RemainingQuantity, 'ASICPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
                 end;
             until L_MaxOrderQty.Next = 0;
         End;
     end;
 
-    procedure PerMonthSelCustomerAllItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    procedure PerMonthSelCustomerAllItemQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -2510,13 +2510,13 @@ codeunit 60600 "All Event"
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                     if L_RemainingQuantity < 0 then
                         L_RemainingQuantity := 0;
-                    CheckingRemainingQty(L_RemainingQuantity, 'SCAPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCAPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
                 end;
             until L_MaxOrderQty.Next = 0;
         end;
     end;
 
-    procedure PerMonthSelCustomerSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    procedure PerMonthSelCustomerSelItemQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -2589,14 +2589,14 @@ codeunit 60600 "All Event"
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                     if L_RemainingQuantity < 0 then
                         L_RemainingQuantity := 0;
-                    CheckingRemainingQty(L_RemainingQuantity, 'SCSIPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCSIPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
                 end;
             until L_MaxOrderQty.Next = 0;
         end;
 
     end;
 
-    procedure PerMonthSelCustomerSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    procedure PerMonthSelCustomerSelItemCatQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -2670,14 +2670,14 @@ codeunit 60600 "All Event"
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                     if L_RemainingQuantity < 0 then
                         L_RemainingQuantity := 0;
-                    CheckingRemainingQty(L_RemainingQuantity, 'SCSICPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCSICPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
                 end;
             until L_MaxOrderQty.Next = 0;
         end;
     end;
 
 
-    procedure PerMonthSelCustomerGroupAllItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    procedure PerMonthSelCustomerGroupAllItemQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -2748,13 +2748,13 @@ codeunit 60600 "All Event"
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                     if L_RemainingQuantity < 0 then
                         L_RemainingQuantity := 0;
-                    CheckingRemainingQty(L_RemainingQuantity, 'SCGAPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCGAPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
                 end;
             until L_MaxOrderQty.Next = 0;
         end;
     end;
 
-    procedure PerMonthSelCustomerGroupSelItemQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    procedure PerMonthSelCustomerGroupSelItemQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -2826,13 +2826,13 @@ codeunit 60600 "All Event"
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                     if L_RemainingQuantity < 0 then
                         L_RemainingQuantity := 0;
-                    CheckingRemainingQty(L_RemainingQuantity, 'SCGSIPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCGSIPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
                 end;
             until L_MaxOrderQty.Next = 0;
         end;
     end;
 
-    procedure PerMonthSelCustomerGroupSelItemCatQty(RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
+    procedure PerMonthSelCustomerGroupSelItemCatQty(var RecSalesLine: Record "Sales Line"; RecSalesHeader: Record "Sales Header"; ItemCat: code[20]; Sdate: Date; Edate: Date)
     var
         L_MaxOrderQty: Record 60600;
         L_DayOrderQty: Decimal;
@@ -2900,7 +2900,7 @@ codeunit 60600 "All Event"
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                     if L_RemainingQuantity < 0 then
                         L_RemainingQuantity := 0;
-                    CheckingRemainingQty(L_RemainingQuantity, 'SCGSICPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty);
+                    CheckingRemainingQty(L_RemainingQuantity, 'SCGSICPMQ', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Quantity Restriction", L_OrderQty, RecSalesLine);
                 end;
             until L_MaxOrderQty.Next = 0;
         end;
@@ -4514,22 +4514,27 @@ codeunit 60600 "All Event"
     //salman
 
 
-    procedure CheckingRemainingQty(RemQty: Decimal; Errcode: code[20]; WarningtypeOpion: Text; _TotalMaxQuantity: Decimal; _QuantityRestriction: Option "Per Day","Per Order","Per Month"; _OrderQuanitity: Decimal)
+    procedure CheckingRemainingQty(RemQty: Decimal; Errcode: code[20]; WarningtypeOpion: Text; _TotalMaxQuantity: Decimal; _QuantityRestriction: Option "Per Day","Per Order","Per Month"; _OrderQuanitity: Decimal; var _SalesLine: Record "Sales Line")
     var
     begin
+        _SalesLine."Sales Quota Approval" := false;
         if _QuantityRestriction = _QuantityRestriction::"Per Order" then begin
             if _OrderQuanitity > RemQty then begin
                 if WarningtypeOpion = 'error' then
                     ERROR('Maximum quantity %1  %2 allowed has been exceeded.You can use only %3 Qty.', _TotalMaxQuantity, _QuantityRestriction, _TotalMaxQuantity)
-                else
+                else begin
                     Message('Maximum quantity %1  %2 allowed has been exceeded.You can use only %3 Qty.', _TotalMaxQuantity, _QuantityRestriction, _TotalMaxQuantity);
+                    _SalesLine."Sales Quota Approval" := true;
+                end;
             end;
         end else begin
             if _OrderQuanitity > RemQty then begin
                 if WarningtypeOpion = 'error' then
                     ERROR('Maximum quantity %1  %2 allowed has been exceeded.Remaining quantity is %3.', _TotalMaxQuantity, _QuantityRestriction, RemQty)
-                else
+                else begin
                     Message('Maximum quantity %1  %2 allowed has been exceeded.Remaining quantity is %3.', _TotalMaxQuantity, _QuantityRestriction, RemQty);
+                    _SalesLine."Sales Quota Approval" := true;
+                end;
             end;
         end;
 
@@ -4968,7 +4973,7 @@ codeunit 60600 "All Event"
             L_WarehouseClassCode.Reset();
             L_WarehouseClassCode.SetRange(Code, L_Item."Warehouse Class Code");
             if L_WarehouseClassCode.FindFirst() then begin
-                if L_WarehouseClassCode."CD Schedule" = true then begin
+                if (L_WarehouseClassCode."Restrict CD 2,3" = true) OR (L_WarehouseClassCode."Restrict CD 4,5") then begin
                     L_UserSetup.Reset();
                     L_UserSetup.SetRange("User ID", UserId);
                     L_UserSetup.SetRange("Allowed Quota Manag. for CD", true);

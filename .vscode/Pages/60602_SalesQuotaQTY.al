@@ -246,6 +246,19 @@ page 60602 "Quota By Quantity"
 
             }
         }
+
+        area(FactBoxes)
+        {
+
+            systempart(Control1900383207; Links)
+            {
+                ApplicationArea = RecordLinks;
+            }
+            systempart(Control1905767507; Notes)
+            {
+                ApplicationArea = Notes;
+            }
+        }
     }
 
 
@@ -288,6 +301,7 @@ page 60602 "Quota By Quantity"
 
     var
         myInt: Integer;
+        Salesorder: Page "Item List";
 
         SalesTypeFilter: Option " ","All Customer",Customer,"Customer Price Group",Dimension;
         ItemTypeFilter: Option " ","All Items","Item","Item Category";
