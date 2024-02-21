@@ -53,19 +53,34 @@ codeunit 60600 "All Event"
                 */
         //old Working Code fromelite--
 
+        // //NewCode Azhar++
+        // if Rec.Quantity <> 0 then begin
+        //     IF CurrFieldNo = 15 THEN BEGIN
+        //         Clear(CurrFieldNoGlo);
+        //         CurrFieldNoGlo := CurrFieldNo;
+        //         CLEAR(RemainingQuantity);
+        //         IF RecUserSetup.GET(USERID) THEN BEGIN
+        //             IF NOT RecUserSetup."SO Override MaxQty Calculation" THEN BEGIN
+        //                 CheckMaxOrderQty2(Rec);
+        //             END;
+        //         END ELSE BEGIN
+        //             CheckMaxOrderQty2(Rec);
+        //         END;
+        //     END;
+        // end;
+        // //NewCode Azhar--
+
         //NewCode Azhar++
         if Rec.Quantity <> 0 then begin
-            IF CurrFieldNo = 15 THEN BEGIN
-                Clear(CurrFieldNoGlo);
-                CurrFieldNoGlo := CurrFieldNo;
-                CLEAR(RemainingQuantity);
-                IF RecUserSetup.GET(USERID) THEN BEGIN
-                    IF NOT RecUserSetup."SO Override MaxQty Calculation" THEN BEGIN
-                        CheckMaxOrderQty2(Rec);
-                    END;
-                END ELSE BEGIN
+            Clear(CurrFieldNoGlo);
+            CurrFieldNoGlo := CurrFieldNo;
+            CLEAR(RemainingQuantity);
+            IF RecUserSetup.GET(USERID) THEN BEGIN
+                IF NOT RecUserSetup."SO Override MaxQty Calculation" THEN BEGIN
                     CheckMaxOrderQty2(Rec);
                 END;
+            END ELSE BEGIN
+                CheckMaxOrderQty2(Rec);
             END;
         end;
         //NewCode Azhar--
@@ -155,8 +170,8 @@ codeunit 60600 "All Event"
     begin
         Clear(CurrentMonthStartDate);
         Clear(EndDate);
-        IF CurrFieldNoGlo <> 15 THEN
-            EXIT;
+        // IF CurrFieldNoGlo <> 15 THEN
+        //     EXIT;
 
         SalesHeader.Reset();
         SalesHeader.SetRange("No.", P_SalesLine."Document No.");
