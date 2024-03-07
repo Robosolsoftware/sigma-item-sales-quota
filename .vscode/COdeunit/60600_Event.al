@@ -409,6 +409,11 @@ codeunit 60600 "All Event"
         L_DefaultDimension.SetRange("No.", RecSalesHeader."Sell-to Customer No.");
         if L_DefaultDimension.FindSet() then begin
             repeat
+                Clear(L_DayOrderQty);
+                Clear(L_RemainingQuantity);
+                Clear(L_OrderQty);
+                Clear(WarningtypeOpion);
+
                 L_MaxOrderQty.RESET;
                 L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Dimension);
                 L_MaxOrderQty.SetRange("Sales Code", L_DefaultDimension."Dimension Code");
@@ -471,6 +476,11 @@ codeunit 60600 "All Event"
         L_DefaultDimension.SetRange("No.", RecSalesHeader."Sell-to Customer No.");
         if L_DefaultDimension.FindSet() then begin
             repeat
+                Clear(L_DayOrderQty);
+                Clear(L_RemainingQuantity);
+                Clear(L_OrderQty);
+                Clear(WarningtypeOpion);
+
                 L_MaxOrderQty.RESET;
                 L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Dimension);
                 L_MaxOrderQty.SetRange("Sales Code", L_DefaultDimension."Dimension Code");
@@ -532,6 +542,11 @@ codeunit 60600 "All Event"
         L_DefaultDimension.SetRange("No.", RecSalesHeader."Sell-to Customer No.");
         if L_DefaultDimension.FindSet() then begin
             repeat
+                Clear(L_DayOrderQty);
+                Clear(L_RemainingQuantity);
+                Clear(L_OrderQty);
+                Clear(WarningtypeOpion);
+
                 L_MaxOrderQty.RESET;
                 L_MaxOrderQty.SETRANGE("Sales Type", L_MaxOrderQty."Sales Type"::Dimension);
                 L_MaxOrderQty.SetRange("Sales Code", L_DefaultDimension."Dimension Code");
