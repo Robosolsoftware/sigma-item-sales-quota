@@ -12,7 +12,7 @@ table 60600 "Sales Quota"
             begin
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
-                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+                CheckPermissionForCDProducts(Rec."Item Code");
 
 
                 IF ("Sales Type" = "Sales Type"::"All Customer") or ("Sales Type" = "Sales Type"::"Customer Price Group") or ("Sales Type" = "Sales Type"::Dimension) THEN begin
@@ -45,7 +45,7 @@ table 60600 "Sales Quota"
             begin
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
-                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+                CheckPermissionForCDProducts(Rec."Item Code");
 
                 case Rec."Sales Type" of
                     Rec."Sales Type"::Customer:
@@ -88,14 +88,13 @@ table 60600 "Sales Quota"
             begin
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
-                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+                CheckPermissionForCDProducts(Rec."Item Code");
 
-                if ("Item Type" = "Item Type"::"All Items") or ("Item Type" = "Item Type"::"Item Category") then begin
-                    Clear("Item Code");
-                    Clear("Item Description");
-                    Clear("Unit of Measure Code");
-                    Clear("Warehouse Class code");
-                end;
+                //Clear Fields++
+                Clear("Item Code");
+                Clear("Item Description");
+                Clear("Unit of Measure Code");
+                Clear("Warehouse Class code");
             end;
 
         }
@@ -112,10 +111,10 @@ table 60600 "Sales Quota"
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
                 if xRec."Item Code" <> '' then
-                    AllEvent.CheckPermissionForCDProducts(xRec."Item Code");
+                    CheckPermissionForCDProducts(xRec."Item Code");
 
 
-                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+                CheckPermissionForCDProducts(Rec."Item Code");
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:--------
 
@@ -147,7 +146,7 @@ table 60600 "Sales Quota"
             begin
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
-                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+                CheckPermissionForCDProducts(Rec."Item Code");
             end;
         }
 
@@ -160,7 +159,7 @@ table 60600 "Sales Quota"
             begin
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
-                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+                CheckPermissionForCDProducts(Rec."Item Code");
             end;
         }
         field(15; "No of Months"; DateFormula)
@@ -171,7 +170,7 @@ table 60600 "Sales Quota"
             begin
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
-                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+                CheckPermissionForCDProducts(Rec."Item Code");
 
                 //StartDateCalculationEnddate(Rec."No of Months");//CAS-28103-W6D1M0
             end;
@@ -184,7 +183,7 @@ table 60600 "Sales Quota"
             begin
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
-                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+                CheckPermissionForCDProducts(Rec."Item Code");
             end;
         }
         field(5; "Maximum Quantity"; Decimal)
@@ -195,7 +194,7 @@ table 60600 "Sales Quota"
             begin
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
-                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+                CheckPermissionForCDProducts(Rec."Item Code");
             end;
         }
         field(80002; "Warning Type"; Option)
@@ -207,7 +206,7 @@ table 60600 "Sales Quota"
             begin
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
-                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+                CheckPermissionForCDProducts(Rec."Item Code");
             end;
         }
         field(6; "Quantity Restriction"; Option)
@@ -219,7 +218,7 @@ table 60600 "Sales Quota"
             begin
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
-                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+                CheckPermissionForCDProducts(Rec."Item Code");
             end;
 
         }
@@ -232,7 +231,7 @@ table 60600 "Sales Quota"
             begin
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
-                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+                CheckPermissionForCDProducts(Rec."Item Code");
 
             end;
         }
@@ -244,7 +243,7 @@ table 60600 "Sales Quota"
             begin
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
-                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+                CheckPermissionForCDProducts(Rec."Item Code");
 
                 if Format(Rec."No of Months") = '' then begin
                     Error('Please enter No. of Months');
@@ -260,7 +259,7 @@ table 60600 "Sales Quota"
             begin
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
-                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+                CheckPermissionForCDProducts(Rec."Item Code");
             end;
         }
 
@@ -272,7 +271,7 @@ table 60600 "Sales Quota"
             begin
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
-                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+                CheckPermissionForCDProducts(Rec."Item Code");
             end;
         }
         field(80001; "B2B Nav Maximum Order IdV3"; Code[20])
@@ -283,7 +282,7 @@ table 60600 "Sales Quota"
             begin
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
-                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+                CheckPermissionForCDProducts(Rec."Item Code");
             end;
         }
 
@@ -295,7 +294,7 @@ table 60600 "Sales Quota"
             begin
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
-                AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+                CheckPermissionForCDProducts(Rec."Item Code");
             end;
         }
 
@@ -313,7 +312,7 @@ table 60600 "Sales Quota"
     {
     }
     var
-        AllEvent: Codeunit "All Event";
+    //AllEvent: Codeunit "All Event";
 
     trigger OnInsert()
     begin
@@ -321,21 +320,21 @@ table 60600 "Sales Quota"
 
         //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
         //16th Training Points:+++++++
-        AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+        CheckPermissionForCDProducts(Rec."Item Code");
     end;
 
     trigger OnModify()
     begin
         //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
         //16th Training Points:+++++++
-        AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+        CheckPermissionForCDProducts(Rec."Item Code");
     end;
 
     trigger OnDelete()
     begin
         //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
         //16th Training Points:+++++++
-        AllEvent.CheckPermissionForCDProducts(Rec."Item Code");
+        CheckPermissionForCDProducts(Rec."Item Code");
     end;
 
     procedure StartDateCalculationEnddate(NoOfMontVar: DateFormula)
@@ -389,5 +388,34 @@ table 60600 "Sales Quota"
         end;
     end;
     //CAS-28103-W6D1M0--
+
+
+
+    procedure CheckPermissionForCDProducts(_ItemNo: Code[20])
+    var
+        L_Item: Record 27;
+        L_UserSetup: Record "User Setup";
+        L_WarehouseClassCode: Record "Warehouse Class";
+    begin
+        //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+        //16th Training Points:+++++++
+        L_Item.Reset();
+        L_Item.SetRange("No.", _ItemNo);
+        if L_Item.FindFirst() then begin
+            L_WarehouseClassCode.Reset();
+            L_WarehouseClassCode.SetRange(Code, L_Item."Warehouse Class Code");
+            if L_WarehouseClassCode.FindFirst() then begin
+                if (L_WarehouseClassCode."Restrict CD 2,3" = true) OR (L_WarehouseClassCode."Restrict CD 4,5") then begin
+                    L_UserSetup.Reset();
+                    L_UserSetup.SetRange("User ID", UserId);
+                    L_UserSetup.SetRange("Allowed Quota Manag. for CD", true);
+                    if not L_UserSetup.FindFirst() then
+                        Error('You do not have permission to Add/Edit/Remove CD product');
+                end;
+            end;
+        end;
+        //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
+        //16th Training Points:--------
+    end;
 }
 
