@@ -405,7 +405,7 @@ table 60600 "Sales Quota"
             L_WarehouseClassCode.Reset();
             L_WarehouseClassCode.SetRange(Code, L_Item."Warehouse Class Code");
             if L_WarehouseClassCode.FindFirst() then begin
-                if (L_WarehouseClassCode."Restrict CD 2,3" = true) OR (L_WarehouseClassCode."Restrict CD 4,5") then begin
+                if (L_WarehouseClassCode.CD = true) then begin
                     L_UserSetup.Reset();
                     L_UserSetup.SetRange("User ID", UserId);
                     L_UserSetup.SetRange("Allowed Quota Manag. for CD", true);
