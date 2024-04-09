@@ -1641,7 +1641,7 @@ codeunit 60600 "All Event"
         L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
         L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
         L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
-        L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        //L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
         L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
         L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
         IF L_MaxOrderQty.FINDFIRST THEN BEGIN
@@ -1687,7 +1687,7 @@ codeunit 60600 "All Event"
         L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
         L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
         L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
-        L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        //L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
         L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
         L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
         IF L_MaxOrderQty.FINDFIRST THEN BEGIN
@@ -1733,7 +1733,7 @@ codeunit 60600 "All Event"
         L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
         L_MaxOrderQty.SetRange("Item Code", ItemCat);
         L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Order");
-        L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        //L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
         L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
         L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
         IF L_MaxOrderQty.FINDFIRST THEN BEGIN
@@ -2144,7 +2144,7 @@ codeunit 60600 "All Event"
         L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
         L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
         L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
-        L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        //L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
         L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
         L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
         IF L_MaxOrderQty.FINDFIRST THEN BEGIN
@@ -2154,7 +2154,7 @@ codeunit 60600 "All Event"
             L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");
             L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
             L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
-            L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
             L_DayWiseQty.SETRANGE(Order_Date, RecSalesHeader."Order Date");
             L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
             L_DayWiseQty.OPEN;
@@ -2168,7 +2168,7 @@ codeunit 60600 "All Event"
             L_DayWiseQty.SetRange(L_DayWiseQty.Doc_No, RecSalesLine."Document No.");
             L_DayWiseQty.SetFilter(L_DayWiseQty.Line_No_, '<>%1', RecSalesLine."Line No.");
             L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
-            L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
             L_DayWiseQty.SETRANGE(Order_Date, RecSalesHeader."Order Date");
             L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
             L_DayWiseQty.OPEN;
@@ -2179,7 +2179,7 @@ codeunit 60600 "All Event"
 
             //Calculate Shipped Quantity++
             L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
-            L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            //L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
             L_DayWiseShippedQty.SETRANGE(Order_Date, RecSalesHeader."Order Date");
             L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
             L_DayWiseShippedQty.OPEN;
@@ -2222,7 +2222,7 @@ codeunit 60600 "All Event"
         L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
         L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
         L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
-        L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        //L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
         L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
         L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
         IF L_MaxOrderQty.FINDFIRST THEN BEGIN
@@ -2232,7 +2232,7 @@ codeunit 60600 "All Event"
             L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
             L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
             L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
-            L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
             L_DayWiseQty.SETRANGE(Order_Date, RecSalesHeader."Order Date");
             L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
             L_DayWiseQty.OPEN;
@@ -2246,7 +2246,7 @@ codeunit 60600 "All Event"
             L_DayWiseQty.SetRange(L_DayWiseQty.Doc_No, RecSalesLine."Document No.");
             L_DayWiseQty.SetFilter(L_DayWiseQty.Line_No_, '<>%1', RecSalesLine."Line No.");
             L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
-            L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
             L_DayWiseQty.SETRANGE(Order_Date, RecSalesHeader."Order Date");
             L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
             L_DayWiseQty.OPEN;
@@ -2257,7 +2257,7 @@ codeunit 60600 "All Event"
 
             //Calculate Shipped Quantity++
             L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
-            L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            //L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
             L_DayWiseShippedQty.SETRANGE(Order_Date, RecSalesHeader."Order Date");
             L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
             L_DayWiseShippedQty.OPEN;
@@ -2301,7 +2301,7 @@ codeunit 60600 "All Event"
         L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
         L_MaxOrderQty.SetRange("Item Code", ItemCat);
         L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Day");
-        L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        //L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
         L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
         L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
         IF L_MaxOrderQty.FINDFIRST THEN BEGIN
@@ -2311,7 +2311,7 @@ codeunit 60600 "All Event"
             L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
             L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
             L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
-            L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
             L_DayWiseQty.SETRANGE(Order_Date, RecSalesHeader."Order Date");
             L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
             L_DayWiseQty.OPEN;
@@ -2325,7 +2325,7 @@ codeunit 60600 "All Event"
             L_DayWiseQty.SetRange(L_DayWiseQty.Doc_No, RecSalesLine."Document No.");
             L_DayWiseQty.SetFilter(L_DayWiseQty.Line_No_, '<>%1', RecSalesLine."Line No.");
             L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
-            L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
             L_DayWiseQty.SETRANGE(Order_Date, RecSalesHeader."Order Date");
             L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
             L_DayWiseQty.OPEN;
@@ -2336,7 +2336,7 @@ codeunit 60600 "All Event"
 
             //Calculate Shipped Quantity++
             L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
-            L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+            //L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
             L_DayWiseShippedQty.SETRANGE(Order_Date, RecSalesHeader."Order Date");
             L_DayWiseShippedQty.SetRange(L_DayWiseShippedQty.Item_Category_Code, ItemCat);
             L_DayWiseShippedQty.OPEN;
@@ -2819,7 +2819,7 @@ codeunit 60600 "All Event"
         L_MaxOrderQty.SetRange("Sales Code", RecSalesLine."Sell-to Customer No.");
         L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"All Items");
         L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
-        L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        //L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
         L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
         L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
         IF L_MaxOrderQty.FindFirst() THEN BEGIN
@@ -2830,7 +2830,7 @@ codeunit 60600 "All Event"
                 L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
                 L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
                 L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
-                L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
                 L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
                 L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
                 L_DayWiseQty.OPEN;
@@ -2844,7 +2844,7 @@ codeunit 60600 "All Event"
                 L_DayWiseQty.SETRANGE(L_DayWiseQty.Doc_No, RecSalesLine."Document No.");
                 L_DayWiseQty.SetFilter(L_DayWiseQty.Line_No_, '<>%1', RecSalesLine."Line No.");
                 L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
-                L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
                 L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
                 L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
                 L_DayWiseQty.OPEN;
@@ -2855,7 +2855,7 @@ codeunit 60600 "All Event"
 
                 //Calculate Shipped Quantity++
                 L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
-                L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                //L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
                 L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
                 L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
                 L_DayWiseShippedQty.OPEN;
@@ -2898,7 +2898,7 @@ codeunit 60600 "All Event"
         L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::Item);
         L_MaxOrderQty.SetRange("Item Code", RecSalesLine."No.");
         L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
-        L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        //L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
         L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
         L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
         IF L_MaxOrderQty.FindFirst() THEN BEGIN
@@ -2909,7 +2909,7 @@ codeunit 60600 "All Event"
                 L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
                 L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
                 L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
-                L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
                 L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
                 L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
                 L_DayWiseQty.OPEN;
@@ -2923,7 +2923,7 @@ codeunit 60600 "All Event"
                 L_DayWiseQty.SETRANGE(L_DayWiseQty.Doc_No, RecSalesLine."Document No.");
                 L_DayWiseQty.SetFilter(L_DayWiseQty.Line_No_, '<>%1', RecSalesLine."Line No.");
                 L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
-                L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
                 L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
                 L_DayWiseQty.SETRANGE(No, RecSalesLine."No.");
                 L_DayWiseQty.OPEN;
@@ -2934,7 +2934,7 @@ codeunit 60600 "All Event"
 
                 //Calculate Shipped Quantity++
                 L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
-                L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                //L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
                 L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
                 L_DayWiseShippedQty.SETRANGE(No, RecSalesLine."No.");
                 L_DayWiseShippedQty.OPEN;
@@ -2979,7 +2979,7 @@ codeunit 60600 "All Event"
         L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
         L_MaxOrderQty.SetRange("Item Code", ItemCat);
         L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
-        L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
+        //L_MaxOrderQty.SetRange("Ship-to Code", RecSalesHeader."Ship-to Code");
         L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Quantity");
         L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
         IF L_MaxOrderQty.FindFirst() THEN BEGIN
@@ -2990,7 +2990,7 @@ codeunit 60600 "All Event"
                 L_DayWiseQty.SetRange(Document_Type, RecSalesLine."Document Type");//azhar
                 L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', RecSalesLine."Document No.");
                 L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
-                L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
                 L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
                 L_DayWiseQty.SETRANGE(L_DayWiseQty.Item_Category_Code, ItemCat);
                 L_DayWiseQty.OPEN;
@@ -3004,7 +3004,7 @@ codeunit 60600 "All Event"
                 L_DayWiseQty.SETRANGE(L_DayWiseQty.Doc_No, RecSalesLine."Document No.");
                 L_DayWiseQty.SetFilter(L_DayWiseQty.Line_No_, '<>%1', RecSalesLine."Line No.");
                 L_DayWiseQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
-                L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                //L_DayWiseQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
                 L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
                 L_DayWiseQty.SETRANGE(L_DayWiseQty.Item_Category_Code, ItemCat);
                 L_DayWiseQty.OPEN;
@@ -3015,7 +3015,7 @@ codeunit 60600 "All Event"
 
                 //Calculate Shipped Quantity++
                 L_DayWiseShippedQty.SETRANGE(Sell_to_Customer_No, RecSalesLine."Sell-to Customer No.");
-                L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
+                //L_DayWiseShippedQty.SETRANGE(Ship_to_Code, RecSalesHeader."Ship-to Code");
                 L_DayWiseShippedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
                 L_DayWiseShippedQty.SETRANGE(L_DayWiseShippedQty.Item_Category_Code, ItemCat);
                 L_DayWiseShippedQty.OPEN;
