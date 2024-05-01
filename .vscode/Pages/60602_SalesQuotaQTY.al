@@ -189,12 +189,12 @@ page 60602 "Quota By Quantity"
 
                     ApplicationArea = all;
                 }
-                // field("Ship-to Code"; Rec."Ship-to Code")
-                // {
+                field("Ship-to Code"; Rec."Ship-to Code")
+                {
 
-                //     ApplicationArea = all;
-                //     Visible = false;
-                // }
+                    ApplicationArea = all;
+                    Editable = false;
+                }
                 field("Maximum Quantity"; Rec."Maximum Quantity")
                 {
 
