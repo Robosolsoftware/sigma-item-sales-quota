@@ -231,12 +231,12 @@ page 60602 "Quota By Quantity"
                 {
 
                     ApplicationArea = all;
-                    //Editable = false;//CAS-28103-W6D1M0
+                    Editable = (Rec."Quantity Restriction" = Rec."Quantity Restriction"::"Per Month") OR (Rec."Quantity Restriction" = Rec."Quantity Restriction"::"Exception Per Day");
                 }
                 field("End Date"; Rec."End Date")
                 {
                     ApplicationArea = all;
-                    Editable = false;
+                    Editable = Rec."Quantity Restriction" = Rec."Quantity Restriction"::"Exception Per Day";
                 }
 
                 field("External Document No."; Rec."External Document No.")

@@ -120,7 +120,7 @@ table 60602 "Purchase Quota"
         {
             DataClassification = ToBeClassified;
         }
-        field(80002; "Warning Type"; Option)
+        field(20; "Warning Type"; Option)
         {
             OptionCaptionML = ENU = ' ,warning,error';
             OptionMembers = " ",warning,error;
@@ -148,11 +148,11 @@ table 60602 "Purchase Quota"
             DataClassification = ToBeClassified;
         }
 
-        field(80000; "B2B Nav Maximum Order Id"; Code[20])
+        field(30; "B2B Nav Maximum Order Id"; Code[20])
         {
             Description = 'WCL V.03-+';
         }
-        field(80001; "B2B Nav Maximum Order IdV3"; Code[20])
+        field(32; "B2B Nav Maximum Order IdV3"; Code[20])
         {
             Description = 'WCL V.03-+';
         }

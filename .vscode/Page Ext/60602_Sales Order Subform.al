@@ -12,28 +12,6 @@ pageextension 60602 "ISQ Sales Order Subform" extends "Sales Order Subform"
                 Caption = 'Sales Quota Approval Required';
             }
         }
-
-        modify(Quantity)
-        {
-            trigger OnAfterValidate()
-            var
-                RecUserSetup: Record "User Setup";
-                SalesQuotaManagement: Codeunit "All Event";
-            begin
-                //This code for Maunal Sales Order++
-                CurrPage.Update();
-                if Rec.Quantity <> 0 then begin
-                    IF RecUserSetup.GET(USERID) THEN BEGIN
-                        IF NOT RecUserSetup."SO Override MaxQty Calculation" THEN BEGIN
-                            SalesQuotaManagement.CheckMaxOrderQty2(Rec);
-                        END;
-                    END ELSE BEGIN
-                        SalesQuotaManagement.CheckMaxOrderQty2(Rec);
-                    END;
-                end;
-            end;
-        }
-
     }
 
     actions

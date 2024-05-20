@@ -21,14 +21,14 @@ pageextension 60600 ItemCardSalesQ extends "Item Card"
                     RunPageLink = "Item Code" = FIELD("No.");
                     ApplicationArea = all;
                 }
-                action("Quota By Amount")
-                {
-                    Caption = 'Quota By Amount';
-                    Image = ItemAvailability;
-                    RunObject = Page 60603;
-                    RunPageLink = "Item Code" = FIELD("No.");
-                    ApplicationArea = all;
-                }
+                // action("Quota By Amount")
+                // {
+                //     Caption = 'Quota By Amount';
+                //     Image = ItemAvailability;
+                //     RunObject = Page 60603;
+                //     RunPageLink = "Item Code" = FIELD("No.");
+                //     ApplicationArea = all;
+                // }
             }
         }
     }

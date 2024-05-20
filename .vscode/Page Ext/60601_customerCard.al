@@ -47,30 +47,30 @@ pageextension 60601 CustCardSalesQ extends "Customer Card"
                         end;
                     end;*/
                 }
-                action("Quota By Amount")
-                {
-                    Caption = 'Quota By Amount';
-                    Image = ItemAvailability;
-                    RunObject = Page 60603;
-                    RunPageLink = "Sales Code" = FIELD("No.");
-                    ApplicationArea = all;
-                    /* trigger OnAction()
-                     var
-                         QuotaByQty: Page 80705;
-                         RecSalesQuota: Record "Sales Quota";
-                     begin
-                         Clear(QuotaByQty);
-                         RecSalesQuota.Reset();
-                         RecSalesQuota.SetRange("Restriction Type", RecSalesQuota."Restriction Type"::"By Quantity");
-                         RecSalesQuota.SetRange("Sales Code", Rec."No.");
-                         if RecSalesQuota.FindSet() then begin
-                             QuotaByQty.SetTableView(RecSalesQuota);
-                             QuotaByQty.getitemfilterCustomer(Rec."No.");
-                             QuotaByQty.Run();
-                         end;
-                     end;
-                     */
-                }
+                // action("Quota By Amount")
+                // {
+                //     Caption = 'Quota By Amount';
+                //     Image = ItemAvailability;
+                //     RunObject = Page 60603;
+                //     RunPageLink = "Sales Code" = FIELD("No.");
+                //     ApplicationArea = all;
+                //     /* trigger OnAction()
+                //      var
+                //          QuotaByQty: Page 80705;
+                //          RecSalesQuota: Record "Sales Quota";
+                //      begin
+                //          Clear(QuotaByQty);
+                //          RecSalesQuota.Reset();
+                //          RecSalesQuota.SetRange("Restriction Type", RecSalesQuota."Restriction Type"::"By Quantity");
+                //          RecSalesQuota.SetRange("Sales Code", Rec."No.");
+                //          if RecSalesQuota.FindSet() then begin
+                //              QuotaByQty.SetTableView(RecSalesQuota);
+                //              QuotaByQty.getitemfilterCustomer(Rec."No.");
+                //              QuotaByQty.Run();
+                //          end;
+                //      end;
+                //      */
+                // }
             }
         }
     }

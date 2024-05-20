@@ -197,7 +197,7 @@ table 60600 "Sales Quota"
                 CheckPermissionForCDProducts(Rec."Item Code");
             end;
         }
-        field(80002; "Warning Type"; Option)
+        field(20; "Warning Type"; Option)
         {
             OptionCaptionML = ENU = 'warning,error';
             OptionMembers = warning,error;
@@ -211,8 +211,8 @@ table 60600 "Sales Quota"
         }
         field(6; "Quantity Restriction"; Option)
         {
-            OptionCaption = 'Per Day,Per Order,Per Month';
-            OptionMembers = "Per Day","Per Order","Per Month";
+            OptionCaption = 'Per Day,Per Order,Per Month,Exception Per Day';
+            OptionMembers = "Per Day","Per Order","Per Month","Exception Per Day";
 
             trigger OnValidate()
             begin
@@ -245,9 +245,12 @@ table 60600 "Sales Quota"
                 //16th Training Points:+++++++
                 CheckPermissionForCDProducts(Rec."Item Code");
 
-                if Format(Rec."No of Months") = '' then begin
-                    Error('Please enter No. of Months');
+                if Rec."Quantity Restriction" = Rec."Quantity Restriction"::"Per Month" then begin
+                    if Format(Rec."No of Months") = '' then begin
+                        Error('Please enter No. of Months');
+                    end;
                 end;
+
                 StartDateCalculationEnddate2(Rec."No of Months");//CAS-28103-W6D1M0
             end;
         }
@@ -263,7 +266,7 @@ table 60600 "Sales Quota"
             end;
         }
 
-        field(80000; "B2B Nav Maximum Order Id"; Code[20])
+        field(30; "B2B Nav Maximum Order Id"; Code[20])
         {
             Description = 'WCL V.03-+';
 
@@ -274,7 +277,7 @@ table 60600 "Sales Quota"
                 CheckPermissionForCDProducts(Rec."Item Code");
             end;
         }
-        field(80001; "B2B Nav Maximum Order IdV3"; Code[20])
+        field(31; "B2B Nav Maximum Order IdV3"; Code[20])
         {
             Description = 'WCL V.03-+';
 
