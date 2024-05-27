@@ -642,7 +642,7 @@ codeunit 60600 "All Event"
                         L_SalesLine.Reset();
                         L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
                         L_SalesLine.SetRange("Document No.", RecSalesLine."Document No.");
-                        L_SalesLine.SetFilter("Line No.", '<>%1', L_SalesLine."Line No.");
+                        L_SalesLine.SetFilter("Line No.", '<>%1', RecSalesLine."Line No.");
                         L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
                         L_SalesLine.SetRange("No.", RecSalesLine."No.");
                         L_SalesLine.SetRange("Order Date", RecSalesHeader."Order Date");
@@ -766,7 +766,7 @@ codeunit 60600 "All Event"
                     L_SalesLine.Reset();
                     L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
                     L_SalesLine.SetRange("Document No.", RecSalesLine."Document No.");
-                    L_SalesLine.SetFilter("Line No.", '<>%1', L_SalesLine."Line No.");
+                    L_SalesLine.SetFilter("Line No.", '<>%1', RecSalesLine."Line No.");
                     L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
                     L_SalesLine.SetRange("No.", RecSalesLine."No.");
                     L_SalesLine.SetRange("Order Date", RecSalesHeader."Order Date");
@@ -890,7 +890,7 @@ codeunit 60600 "All Event"
                         L_SalesLine.Reset();
                         L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
                         L_SalesLine.SetRange("Document No.", RecSalesLine."Document No.");
-                        L_SalesLine.SetFilter("Line No.", '<>%1', L_SalesLine."Line No.");
+                        L_SalesLine.SetFilter("Line No.", '<>%1', RecSalesLine."Line No.");
                         L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
                         L_SalesLine.SetRange("No.", RecSalesLine."No.");
                         L_SalesLine.SetRange("Order Date", RecSalesHeader."Order Date");
@@ -1013,7 +1013,7 @@ codeunit 60600 "All Event"
                     L_SalesLine.Reset();
                     L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
                     L_SalesLine.SetRange("Document No.", RecSalesLine."Document No.");
-                    L_SalesLine.SetFilter("Line No.", '<>%1', L_SalesLine."Line No.");
+                    L_SalesLine.SetFilter("Line No.", '<>%1', RecSalesLine."Line No.");
                     L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
                     L_SalesLine.SetRange("No.", RecSalesLine."No.");
                     L_SalesLine.SetRange("Order Date", RecSalesHeader."Order Date");
@@ -1137,7 +1137,7 @@ codeunit 60600 "All Event"
                         L_SalesLine.Reset();
                         L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
                         L_SalesLine.SetRange("Document No.", RecSalesLine."Document No.");
-                        L_SalesLine.SetFilter("Line No.", '<>%1', L_SalesLine."Line No.");
+                        L_SalesLine.SetFilter("Line No.", '<>%1', RecSalesLine."Line No.");
                         L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
                         L_SalesLine.SetRange("Item Category Code", ItemCat);
                         L_SalesLine.SetRange("Order Date", RecSalesHeader."Order Date");
@@ -1261,7 +1261,7 @@ codeunit 60600 "All Event"
                     L_SalesLine.Reset();
                     L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
                     L_SalesLine.SetRange("Document No.", RecSalesLine."Document No.");
-                    L_SalesLine.SetFilter("Line No.", '<>%1', L_SalesLine."Line No.");
+                    L_SalesLine.SetFilter("Line No.", '<>%1', RecSalesLine."Line No.");
                     L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
                     L_SalesLine.SetRange("Item Category Code", ItemCat);
                     L_SalesLine.SetRange("Order Date", RecSalesHeader."Order Date");
@@ -1385,7 +1385,7 @@ codeunit 60600 "All Event"
                         L_SalesLine.Reset();
                         L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
                         L_SalesLine.SetRange("Document No.", RecSalesLine."Document No.");
-                        L_SalesLine.SetFilter("Line No.", '<>%1', L_SalesLine."Line No.");
+                        L_SalesLine.SetFilter("Line No.", '<>%1', RecSalesLine."Line No.");
                         L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
                         L_SalesLine.SetRange("No.", RecSalesLine."No.");
                         L_SalesLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
@@ -1509,7 +1509,7 @@ codeunit 60600 "All Event"
                         L_SalesLine.Reset();
                         L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
                         L_SalesLine.SetRange("Document No.", RecSalesLine."Document No.");
-                        L_SalesLine.SetFilter("Line No.", '<>%1', L_SalesLine."Line No.");
+                        L_SalesLine.SetFilter("Line No.", '<>%1', RecSalesLine."Line No.");
                         L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
                         L_SalesLine.SetRange("No.", RecSalesLine."No.");
                         L_SalesLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
@@ -1634,7 +1634,7 @@ codeunit 60600 "All Event"
                         L_SalesLine.Reset();
                         L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
                         L_SalesLine.SetRange("Document No.", RecSalesLine."Document No.");
-                        L_SalesLine.SetFilter("Line No.", '<>%1', L_SalesLine."Line No.");
+                        L_SalesLine.SetFilter("Line No.", '<>%1', RecSalesLine."Line No.");
                         L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
                         L_SalesLine.SetRange("Item Category Code", ItemCat);
                         L_SalesLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);

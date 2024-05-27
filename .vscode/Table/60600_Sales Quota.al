@@ -263,6 +263,12 @@ table 60600 "Sales Quota"
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
                 CheckPermissionForCDProducts(Rec."Item Code");
+
+                Rec.TestField("Start Date");
+                if Rec."End Date" <> 0D then begin
+                    if Rec."End Date" < Rec."Start Date" then
+                        Error('End Date should be greater than Start Date');
+                end;
             end;
         }
 
