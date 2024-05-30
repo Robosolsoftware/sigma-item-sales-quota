@@ -74,7 +74,7 @@ table 60600 "Sales Quota"
         }
 
 
-        field(2; "Sales Name"; Text[50])
+        field(2; "Sales Name"; Text[100])
         {
             DataClassification = ToBeClassified;
             Editable = false;
@@ -129,7 +129,7 @@ table 60600 "Sales Quota"
                 end;
             end;
         }
-        field(4; "Item Description"; Code[50])
+        field(4; "Item Description"; Code[100])
         {
             Editable = false;
         }

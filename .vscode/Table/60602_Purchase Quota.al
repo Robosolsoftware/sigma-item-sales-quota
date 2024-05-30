@@ -44,7 +44,7 @@ table 60602 "Purchase Quota"
         }
 
 
-        field(2; "Purchase Name"; Text[50])
+        field(2; "Purchase Name"; Text[100])
         {
             DataClassification = ToBeClassified;
             Editable = false;
@@ -85,7 +85,7 @@ table 60602 "Purchase Quota"
 
             end;
         }
-        field(4; "Item Description"; Code[50])
+        field(4; "Item Description"; Code[100])
         {
             Editable = false;
         }
