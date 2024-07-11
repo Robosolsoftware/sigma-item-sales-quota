@@ -5799,8 +5799,15 @@ codeunit 60600 "All Event"
         _SalesLine."Sales Quota Approval" := false;
         if _QuantityRestriction = _QuantityRestriction::"Per Order" then begin
             if _OrderQuanitity > RemQty then begin
-                if WarningtypeOpion = 'error' then
-                    ERROR('Maximum quantity %1  %2 allowed has been exceeded.You can use only %3 Qty.', _TotalMaxQuantity, _QuantityRestriction, _TotalMaxQuantity)
+                if WarningtypeOpion = 'error' then begin
+                    if GuiAllowed = true then begin
+                        ERROR('Maximum quantity %1  %2 allowed has been exceeded.You can use only %3 Qty.', _TotalMaxQuantity, _QuantityRestriction, _TotalMaxQuantity)
+                    end
+                    else begin
+                        _SalesLine."Sales Quota Approval" := true;
+                        Exceeded := true;
+                    end;
+                end
                 else begin
                     Message('Maximum quantity %1  %2 allowed has been exceeded.You can use only %3 Qty.', _TotalMaxQuantity, _QuantityRestriction, _TotalMaxQuantity);
                     _SalesLine."Sales Quota Approval" := true;
@@ -5810,8 +5817,15 @@ codeunit 60600 "All Event"
                 _SalesLine."Sales Quota Approval" := false;
         end else begin
             if _OrderQuanitity > RemQty then begin
-                if WarningtypeOpion = 'error' then
-                    ERROR('Maximum quantity %1  %2 allowed has been exceeded.Remaining quantity is %3.', _TotalMaxQuantity, _QuantityRestriction, RemQty)
+                if WarningtypeOpion = 'error' then begin
+                    if GuiAllowed = true then begin
+                        ERROR('Maximum quantity %1  %2 allowed has been exceeded.Remaining quantity is %3.', _TotalMaxQuantity, _QuantityRestriction, RemQty)
+                    end
+                    else begin
+                        _SalesLine."Sales Quota Approval" := true;
+                        Exceeded := true;
+                    end;
+                end
                 else begin
                     Message('Maximum quantity %1  %2 allowed has been exceeded.Remaining quantity is %3.', _TotalMaxQuantity, _QuantityRestriction, RemQty);
                     _SalesLine."Sales Quota Approval" := true;

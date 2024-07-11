@@ -6,7 +6,7 @@
             "request": "launch",
             "type": "al",
             "environmentType": "Sandbox",
-            "environmentName": "Sandbox_Beta",
+            "environmentName": "BetaCopy_100724",
             //"environmentName": "Sigma_UAT",
             //"environmentName": "Sigma_KNAPP",
             "tenant": "55614040-8b3d-41a1-bae8-2140b06bd0c3",
@@ -16,7 +16,7 @@
             "launchBrowser": true,
             "enableLongRunningSqlStatements": true,
             "enableSqlInformationDebugger": true,
-            "schemaUpdateMode": "ForceSync"
+            "schemaUpdateMode": "Synchronize"
         }
     ]
 }
