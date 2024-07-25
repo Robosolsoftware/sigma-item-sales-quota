@@ -168,6 +168,7 @@ page 60602 "Quota By Quantity"
                 {
 
                     ApplicationArea = all;
+                    ToolTip = 'Specifies the Item Type based on the priority: "Item", "All Item", "Item Category".';
                 }
                 field("Item Code"; Rec."Item Code")
                 {
@@ -209,6 +210,7 @@ page 60602 "Quota By Quantity"
                 {
 
                     ApplicationArea = all;
+                    ToolTip = 'Specifies the Quantity Restriction based on the priority: "Exception Per Day","Per Order","Per Day","Per Month".';
                     trigger OnValidate();
                     var
                     begin
