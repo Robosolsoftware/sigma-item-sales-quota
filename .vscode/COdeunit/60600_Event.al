@@ -434,7 +434,8 @@ codeunit 60600 "All Event"
                         L_DayOrderQty := ExistingSalesQuantity."Outstanding Quantity";
                     END;
 
-                    L_OrderQty := RecSalesLine.Quantity;
+                    //L_OrderQty := RecSalesLine.Quantity;
+                    L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                     if L_MaxOrderQty."Maximum Quantity" < (L_DayOrderQty + L_OrderQty) then
                         L_RemainingQuantity := 0
@@ -496,7 +497,8 @@ codeunit 60600 "All Event"
                         L_DayOrderQty := ExistingSalesQuantity."Outstanding Quantity";
                     END;
 
-                    L_OrderQty := RecSalesLine.Quantity;
+                    //L_OrderQty := RecSalesLine.Quantity;
+                    L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                     if L_MaxOrderQty."Maximum Quantity" < (L_DayOrderQty + L_OrderQty) then
                         L_RemainingQuantity := 0
@@ -560,7 +562,8 @@ codeunit 60600 "All Event"
                         L_DayOrderQty := ExistingSalesQuantity."Outstanding Quantity";
                     END;
 
-                    L_OrderQty := RecSalesLine.Quantity;
+                    //L_OrderQty := RecSalesLine.Quantity;
+                    L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                     if L_MaxOrderQty."Maximum Quantity" < (L_DayOrderQty + L_OrderQty) then
                         L_RemainingQuantity := 0
@@ -681,7 +684,8 @@ codeunit 60600 "All Event"
                         end;
 
                         //Calculate L_OrderQty Quantity++
-                        L_OrderQty := RecSalesLine.Quantity;
+                        //L_OrderQty := RecSalesLine.Quantity;
+                        L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                         L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                         if L_RemainingQuantity < 0 then
@@ -805,7 +809,9 @@ codeunit 60600 "All Event"
                     end;
 
                     //Calculate L_OrderQty Quantity++
-                    L_OrderQty := RecSalesLine.Quantity;
+                    //L_OrderQty := RecSalesLine.Quantity;
+                    L_OrderQty := RecSalesLine."Outstanding Quantity";
+
 
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                     if L_RemainingQuantity < 0 then
@@ -929,7 +935,8 @@ codeunit 60600 "All Event"
                         end;
 
                         //Calculate L_OrderQty Quantity++
-                        L_OrderQty := RecSalesLine.Quantity;
+                        //L_OrderQty := RecSalesLine.Quantity;
+                        L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                         L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                         if L_RemainingQuantity < 0 then
@@ -1052,7 +1059,8 @@ codeunit 60600 "All Event"
                     end;
 
                     //Calculate L_OrderQty Quantity++
-                    L_OrderQty := RecSalesLine.Quantity;
+                    //L_OrderQty := RecSalesLine.Quantity;
+                    L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                     if L_RemainingQuantity < 0 then
@@ -1176,7 +1184,8 @@ codeunit 60600 "All Event"
                         end;
 
                         //Calculate L_OrderQty Quantity++
-                        L_OrderQty := RecSalesLine.Quantity;
+                        //L_OrderQty := RecSalesLine.Quantity;
+                        L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                         L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                         if L_RemainingQuantity < 0 then
@@ -1300,7 +1309,8 @@ codeunit 60600 "All Event"
                     end;
 
                     //Calculate L_OrderQty Quantity++
-                    L_OrderQty := RecSalesLine.Quantity;
+                    //L_OrderQty := RecSalesLine.Quantity;
+                    L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                     if L_RemainingQuantity < 0 then
@@ -1424,7 +1434,8 @@ codeunit 60600 "All Event"
                         end;
 
                         //Calculate L_OrderQty Quantity++
-                        L_OrderQty := RecSalesLine.Quantity;
+                        //L_OrderQty := RecSalesLine.Quantity;
+                        L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                         L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                         if L_RemainingQuantity < 0 then
@@ -1548,7 +1559,8 @@ codeunit 60600 "All Event"
                         end;
 
                         //Calculate L_OrderQty Quantity++
-                        L_OrderQty := RecSalesLine.Quantity;
+                        //L_OrderQty := RecSalesLine.Quantity;
+                        L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                         L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                         if L_RemainingQuantity < 0 then
@@ -1673,7 +1685,8 @@ codeunit 60600 "All Event"
                         end;
 
                         //Calculate L_OrderQty Quantity++
-                        L_OrderQty := RecSalesLine.Quantity;
+                        //L_OrderQty := RecSalesLine.Quantity;
+                        L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                         L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                         if L_RemainingQuantity < 0 then
@@ -1722,7 +1735,8 @@ codeunit 60600 "All Event"
                 L_DayOrderQty := ExistingSalesQuantity."Outstanding Quantity";
             END;
 
-            L_OrderQty := RecSalesLine.Quantity;
+            //L_OrderQty := RecSalesLine.Quantity;
+            L_OrderQty := RecSalesLine."Outstanding Quantity";
 
             if L_MaxOrderQty."Maximum Quantity" < (L_DayOrderQty + L_OrderQty) then
                 L_RemainingQuantity := 0
@@ -1769,7 +1783,8 @@ codeunit 60600 "All Event"
                 L_DayOrderQty := ExistingSalesQuantity."Outstanding Quantity";
             END;
 
-            L_OrderQty := RecSalesLine.Quantity;
+            //L_OrderQty := RecSalesLine.Quantity;
+            L_OrderQty := RecSalesLine."Outstanding Quantity";
 
             if L_MaxOrderQty."Maximum Quantity" < (L_DayOrderQty + L_OrderQty) then
                 L_RemainingQuantity := 0
@@ -1817,7 +1832,8 @@ codeunit 60600 "All Event"
                 L_DayOrderQty := ExistingSalesQuantity."Outstanding Quantity";
             END;
 
-            L_OrderQty := RecSalesLine.Quantity;
+            //L_OrderQty := RecSalesLine.Quantity;
+            L_OrderQty := RecSalesLine."Outstanding Quantity";
 
             if L_MaxOrderQty."Maximum Quantity" < (L_DayOrderQty + L_OrderQty) then
                 L_RemainingQuantity := 0
@@ -1865,7 +1881,8 @@ codeunit 60600 "All Event"
                 L_DayOrderQty := ExistingSalesQuantity."Outstanding Quantity";
             END;
 
-            L_OrderQty := RecSalesLine.Quantity;
+            //L_OrderQty := RecSalesLine.Quantity;
+            L_OrderQty := RecSalesLine."Outstanding Quantity";
 
             if L_MaxOrderQty."Maximum Quantity" < (L_DayOrderQty + L_OrderQty) then
                 L_RemainingQuantity := 0
@@ -1914,7 +1931,8 @@ codeunit 60600 "All Event"
                 L_DayOrderQty := ExistingSalesQuantity."Outstanding Quantity";
             END;
 
-            L_OrderQty := RecSalesLine.Quantity;
+            //L_OrderQty := RecSalesLine.Quantity;
+            L_OrderQty := RecSalesLine."Outstanding Quantity";
 
             if L_MaxOrderQty."Maximum Quantity" < (L_DayOrderQty + L_OrderQty) then
                 L_RemainingQuantity := 0
@@ -1964,7 +1982,8 @@ codeunit 60600 "All Event"
                 L_DayOrderQty := ExistingSalesQuantity."Outstanding Quantity";
             END;
 
-            L_OrderQty := RecSalesLine.Quantity;
+            //L_OrderQty := RecSalesLine.Quantity;
+            L_OrderQty := RecSalesLine."Outstanding Quantity";
 
             if L_MaxOrderQty."Maximum Quantity" < (L_DayOrderQty + L_OrderQty) then
                 L_RemainingQuantity := 0
@@ -2012,7 +2031,8 @@ codeunit 60600 "All Event"
                 L_DayOrderQty := ExistingSalesQuantity."Outstanding Quantity";
             END;
 
-            L_OrderQty := RecSalesLine.Quantity;
+            //L_OrderQty := RecSalesLine.Quantity;
+            L_OrderQty := RecSalesLine."Outstanding Quantity";
 
             if L_MaxOrderQty."Maximum Quantity" < (L_DayOrderQty + L_OrderQty) then
                 L_RemainingQuantity := 0
@@ -2061,7 +2081,8 @@ codeunit 60600 "All Event"
                 L_DayOrderQty := ExistingSalesQuantity."Outstanding Quantity";
             END;
 
-            L_OrderQty := RecSalesLine.Quantity;
+            //L_OrderQty := RecSalesLine.Quantity;
+            L_OrderQty := RecSalesLine."Outstanding Quantity";
 
             if L_MaxOrderQty."Maximum Quantity" < (L_DayOrderQty + L_OrderQty) then
                 L_RemainingQuantity := 0
@@ -2112,7 +2133,8 @@ codeunit 60600 "All Event"
                 L_DayOrderQty := ExistingSalesQuantity."Outstanding Quantity";
             END;
 
-            L_OrderQty := RecSalesLine.Quantity;
+            //L_OrderQty := RecSalesLine.Quantity;
+            L_OrderQty := RecSalesLine."Outstanding Quantity";
 
             if L_MaxOrderQty."Maximum Quantity" < (L_DayOrderQty + L_OrderQty) then
                 L_RemainingQuantity := 0
@@ -2186,7 +2208,8 @@ codeunit 60600 "All Event"
                 L_DayWiseShippedQty.CLOSE;
 
                 //Calculate L_OrderQty Quantity++
-                L_OrderQty := RecSalesLine.Quantity;
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                 if L_RemainingQuantity < 0 then
@@ -2259,7 +2282,8 @@ codeunit 60600 "All Event"
             L_DayWiseShippedQty.CLOSE;
 
             //Calculate L_OrderQty Quantity++
-            L_OrderQty := RecSalesLine.Quantity;
+            //L_OrderQty := RecSalesLine.Quantity;
+            L_OrderQty := RecSalesLine."Outstanding Quantity";
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
             if L_RemainingQuantity < 0 then
@@ -2334,7 +2358,8 @@ codeunit 60600 "All Event"
                 L_DayWiseShippedQty.CLOSE;
 
                 //Calculate L_OrderQty Quantity++
-                L_OrderQty := RecSalesLine.Quantity;
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                 if L_RemainingQuantity < 0 then
@@ -2408,7 +2433,8 @@ codeunit 60600 "All Event"
             L_DayWiseShippedQty.CLOSE;
 
             //Calculate L_OrderQty Quantity++
-            L_OrderQty := RecSalesLine.Quantity;
+            //L_OrderQty := RecSalesLine.Quantity;
+            L_OrderQty := RecSalesLine."Outstanding Quantity";
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
             if L_RemainingQuantity < 0 then
@@ -2482,7 +2508,8 @@ codeunit 60600 "All Event"
                 L_DayWiseShippedQty.CLOSE;
 
                 //Calculate L_OrderQty Quantity++
-                L_OrderQty := RecSalesLine.Quantity;
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                 if L_RemainingQuantity < 0 then
@@ -2556,7 +2583,8 @@ codeunit 60600 "All Event"
             L_DayWiseShippedQty.CLOSE;
 
             //Calculate L_OrderQty Quantity++
-            L_OrderQty := RecSalesLine.Quantity;
+            //L_OrderQty := RecSalesLine.Quantity;
+            L_OrderQty := RecSalesLine."Outstanding Quantity";
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
             if L_RemainingQuantity < 0 then
@@ -2635,7 +2663,8 @@ codeunit 60600 "All Event"
 
 
                 //Calculate L_OrderQty Quantity++
-                L_OrderQty := RecSalesLine.Quantity;
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                 if L_RemainingQuantity < 0 then
@@ -2714,7 +2743,8 @@ codeunit 60600 "All Event"
 
 
             //Calculate L_OrderQty Quantity++
-            L_OrderQty := RecSalesLine.Quantity;
+            //L_OrderQty := RecSalesLine.Quantity;
+            L_OrderQty := RecSalesLine."Outstanding Quantity";
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
             if L_RemainingQuantity < 0 then
@@ -2792,7 +2822,8 @@ codeunit 60600 "All Event"
                 L_DayWiseShippedQty.CLOSE;
 
                 //Calculate L_OrderQty Quantity++
-                L_OrderQty := RecSalesLine.Quantity;
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := RecSalesLine."Outstanding Quantity";
 
 
                 //Calculate Remaining Quantity++
@@ -2872,7 +2903,8 @@ codeunit 60600 "All Event"
             L_DayWiseShippedQty.CLOSE;
 
             //Calculate L_OrderQty Quantity++
-            L_OrderQty := RecSalesLine.Quantity;
+            //L_OrderQty := RecSalesLine.Quantity;
+            L_OrderQty := RecSalesLine."Outstanding Quantity";
 
 
             //Calculate Remaining Quantity++
@@ -2952,7 +2984,8 @@ codeunit 60600 "All Event"
                 L_DayWiseShippedQty.CLOSE;
 
                 //Calculate L_OrderQty Quantity++
-                L_OrderQty := RecSalesLine.Quantity;
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                 if L_RemainingQuantity < 0 then
@@ -3030,7 +3063,8 @@ codeunit 60600 "All Event"
             L_DayWiseShippedQty.CLOSE;
 
             //Calculate L_OrderQty Quantity++
-            L_OrderQty := RecSalesLine.Quantity;
+            //L_OrderQty := RecSalesLine.Quantity;
+            L_OrderQty := RecSalesLine."Outstanding Quantity";
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
             if L_RemainingQuantity < 0 then
@@ -3104,7 +3138,8 @@ codeunit 60600 "All Event"
                 L_DayWiseShippedQty.CLOSE;
 
                 //Calculate L_OrderQty Quantity++
-                L_OrderQty := RecSalesLine.Quantity;
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                 if L_RemainingQuantity < 0 then
@@ -3178,7 +3213,8 @@ codeunit 60600 "All Event"
             L_DayWiseShippedQty.CLOSE;
 
             //Calculate L_OrderQty Quantity++
-            L_OrderQty := RecSalesLine.Quantity;
+            //L_OrderQty := RecSalesLine.Quantity;
+            L_OrderQty := RecSalesLine."Outstanding Quantity";
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
             if L_RemainingQuantity < 0 then
@@ -3253,7 +3289,8 @@ codeunit 60600 "All Event"
                 L_DayWiseShippedQty.CLOSE;
 
                 //Calculate L_OrderQty Quantity++
-                L_OrderQty := RecSalesLine.Quantity;
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                 if L_RemainingQuantity < 0 then
@@ -3328,7 +3365,8 @@ codeunit 60600 "All Event"
             L_DayWiseShippedQty.CLOSE;
 
             //Calculate L_OrderQty Quantity++
-            L_OrderQty := RecSalesLine.Quantity;
+            //L_OrderQty := RecSalesLine.Quantity;
+            L_OrderQty := RecSalesLine."Outstanding Quantity";
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
             if L_RemainingQuantity < 0 then
@@ -3403,7 +3441,8 @@ codeunit 60600 "All Event"
                 L_DayWiseShippedQty.CLOSE;
 
                 //Calculate L_OrderQty Quantity++
-                L_OrderQty := RecSalesLine.Quantity;
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                 if L_RemainingQuantity < 0 then
@@ -3478,7 +3517,8 @@ codeunit 60600 "All Event"
             L_DayWiseShippedQty.CLOSE;
 
             //Calculate L_OrderQty Quantity++
-            L_OrderQty := RecSalesLine.Quantity;
+            //L_OrderQty := RecSalesLine.Quantity;
+            L_OrderQty := RecSalesLine."Outstanding Quantity";
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
             if L_RemainingQuantity < 0 then
@@ -3551,7 +3591,8 @@ codeunit 60600 "All Event"
                 L_DayWiseShippedQty.CLOSE;
 
                 //Calculate L_OrderQty Quantity++
-                L_OrderQty := RecSalesLine.Quantity;
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                 if L_RemainingQuantity < 0 then
@@ -3626,7 +3667,8 @@ codeunit 60600 "All Event"
                 L_DayWiseShippedQty.CLOSE;
 
                 //Calculate L_OrderQty Quantity++
-                L_OrderQty := RecSalesLine.Quantity;
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                 if L_RemainingQuantity < 0 then
@@ -3702,7 +3744,8 @@ codeunit 60600 "All Event"
 
 
                 //Calculate L_OrderQty Quantity++
-                L_OrderQty := RecSalesLine.Quantity;
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                 if L_RemainingQuantity < 0 then
@@ -3781,7 +3824,8 @@ codeunit 60600 "All Event"
                 L_DayWiseShippedQty.CLOSE;
 
                 //Calculate L_OrderQty Quantity++
-                L_OrderQty := RecSalesLine.Quantity;
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                 if L_RemainingQuantity < 0 then
@@ -3862,7 +3906,8 @@ codeunit 60600 "All Event"
 
 
                 //Calculate L_OrderQty Quantity++
-                L_OrderQty := RecSalesLine.Quantity;
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                 if L_RemainingQuantity < 0 then
@@ -3943,7 +3988,8 @@ codeunit 60600 "All Event"
                 L_DayWiseShippedQty.CLOSE;
 
                 //Calculate L_OrderQty Quantity++
-                L_OrderQty := RecSalesLine.Quantity;
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                 if L_RemainingQuantity < 0 then
@@ -4020,7 +4066,8 @@ codeunit 60600 "All Event"
 
 
                 //Calculate L_OrderQty Quantity++
-                L_OrderQty := RecSalesLine.Quantity;
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                 if L_RemainingQuantity < 0 then
@@ -4097,7 +4144,8 @@ codeunit 60600 "All Event"
 
 
                 //Calculate L_OrderQty Quantity++
-                L_OrderQty := RecSalesLine.Quantity;
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                 if L_RemainingQuantity < 0 then
@@ -4174,7 +4222,8 @@ codeunit 60600 "All Event"
 
 
                 //Calculate L_OrderQty Quantity++
-                L_OrderQty := RecSalesLine.Quantity;
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := RecSalesLine."Outstanding Quantity";
 
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderQty;
                 if L_RemainingQuantity < 0 then
