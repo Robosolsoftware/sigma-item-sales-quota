@@ -21,6 +21,11 @@ table 60600 "Sales Quota"
                     Clear("Ship-to Code");
                     Clear("Dimension Value");
                 end;
+
+                //Exception Per Day only work for customer. [Discussed with Dipesh]
+                if Rec."Quantity Restriction" = Rec."Quantity Restriction"::"Exception Per Day" then
+                    Rec.TestField("Sales Type", "Sales Type"::Customer);
+
             end;
         }
         field(11; "Restriction Type"; Option)
@@ -219,6 +224,12 @@ table 60600 "Sales Quota"
                 //User Story https://dev.azure.com/Robosol2020/Sigma%20PLC/_workitems/edit/11624
                 //16th Training Points:+++++++
                 CheckPermissionForCDProducts(Rec."Item Code");
+
+                //Exception Per Day only work for customer. [Discussed with Dipesh]
+                if Rec."Sales Type" <> Rec."Sales Type"::" " then begin
+                    if Rec."Quantity Restriction" = Rec."Quantity Restriction"::"Exception Per Day" then
+                        Rec.TestField("Sales Type", "Sales Type"::Customer);
+                end;
             end;
 
         }
