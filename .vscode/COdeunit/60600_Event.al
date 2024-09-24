@@ -743,10 +743,78 @@ codeunit 60600 "All Event"
                 IF L_MaxOrderQty.FINDFIRST THEN BEGIN
                     WarningtypeOpion := Format(L_MaxOrderQty."Warning Type");
 
+                    // //Calculate Existing Order Quantity++++
+                    // L_SalesLine.Reset();
+                    // L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
+                    // L_SalesLine.SETFILTER("Document No.", '<>%1', RecSalesLine."Document No.");
+                    // L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
+                    // L_SalesLine.SetRange("No.", RecSalesLine."No.");
+                    // L_SalesLine.SetRange("Order Date", RecSalesHeader."Order Date");
+                    // if L_SalesLine.FindSet() then begin
+                    //     repeat
+                    //         L_SaleasHeader.Reset();
+                    //         L_SaleasHeader.SetRange("Document Type", L_SalesLine."Document Type");
+                    //         L_SaleasHeader.SetRange("No.", L_SalesLine."Document No.");
+                    //         if L_SaleasHeader.FindFirst() then begin
+                    //             L_DimensionSetEntry.Reset();
+                    //             L_DimensionSetEntry.SetRange("Dimension Set ID", L_SaleasHeader."Dimension Set ID");
+                    //             L_DimensionSetEntry.SetRange("Dimension Code", L_DefaultDimension."Dimension Code");
+                    //             L_DimensionSetEntry.SetRange("Dimension Value Code", L_DefaultDimension."Dimension Value Code");
+                    //             if L_DimensionSetEntry.FindFirst() then begin
+                    //                 L_DayOrderQty += L_SalesLine."Outstanding Quantity";
+                    //             end;
+                    //         end;
+                    //     until L_SalesLine.Next() = 0;
+                    // end;
+
+                    // //Calculate Current Order Quantity but if same item in Different line++
+                    // L_SalesLine.Reset();
+                    // L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
+                    // L_SalesLine.SetRange("Document No.", RecSalesLine."Document No.");
+                    // L_SalesLine.SetFilter("Line No.", '<>%1', RecSalesLine."Line No.");
+                    // L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
+                    // L_SalesLine.SetRange("No.", RecSalesLine."No.");
+                    // L_SalesLine.SetRange("Order Date", RecSalesHeader."Order Date");
+                    // if L_SalesLine.FindSet() then begin
+                    //     repeat
+                    //         L_SaleasHeader.Reset();
+                    //         L_SaleasHeader.SetRange("Document Type", L_SalesLine."Document Type");
+                    //         L_SaleasHeader.SetRange("No.", L_SalesLine."Document No.");
+                    //         if L_SaleasHeader.FindFirst() then begin
+                    //             L_DimensionSetEntry.Reset();
+                    //             L_DimensionSetEntry.SetRange("Dimension Set ID", L_SaleasHeader."Dimension Set ID");
+                    //             L_DimensionSetEntry.SetRange("Dimension Code", L_DefaultDimension."Dimension Code");
+                    //             L_DimensionSetEntry.SetRange("Dimension Value Code", L_DefaultDimension."Dimension Value Code");
+                    //             if L_DimensionSetEntry.FindFirst() then begin
+                    //                 L_DayOrderQty += L_SalesLine."Outstanding Quantity";
+                    //             end;
+                    //         end;
+                    //     until L_SalesLine.Next() = 0;
+                    // end;
+
+                    // //Calculate Shipped Quantity+++++
+                    // L_SalesShipmentLine.Reset();
+                    // L_SalesShipmentLine.SetRange("No.", RecSalesLine."No.");
+                    // L_SalesShipmentLine.SetRange(Type, L_SalesShipmentLine.Type::Item);
+                    // L_SalesShipmentLine.SetRange("Order Date", RecSalesHeader."Order Date");
+                    // if L_SalesShipmentLine.FindSet() then begin
+                    //     repeat
+                    //         L_DimensionSetEntry.Reset();
+                    //         L_DimensionSetEntry.SetRange("Dimension Set ID", L_SalesShipmentLine."Dimension Set ID");
+                    //         L_DimensionSetEntry.SetRange("Dimension Code", L_DefaultDimension."Dimension Code");
+                    //         L_DimensionSetEntry.SetRange("Dimension Value Code", L_DefaultDimension."Dimension Value Code");
+                    //         if L_DimensionSetEntry.FindFirst() then begin
+                    //             L_DayOrderQty += L_SalesShipmentLine.Quantity;
+                    //         end;
+                    //     until L_SalesShipmentLine.Next() = 0;
+                    // end;
+
+                    //New Code added discussed with Team++
                     //Calculate Existing Order Quantity++++
                     L_SalesLine.Reset();
                     L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
                     L_SalesLine.SETFILTER("Document No.", '<>%1', RecSalesLine."Document No.");
+                    L_SalesLine.SetRange("Sell-to Customer No.", RecSalesLine."Sell-to Customer No.");
                     L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
                     L_SalesLine.SetRange("No.", RecSalesLine."No.");
                     L_SalesLine.SetRange("Order Date", RecSalesHeader."Order Date");
@@ -765,6 +833,7 @@ codeunit 60600 "All Event"
                                 end;
                             end;
                         until L_SalesLine.Next() = 0;
+
                     end;
 
                     //Calculate Current Order Quantity but if same item in Different line++
@@ -797,6 +866,7 @@ codeunit 60600 "All Event"
                     L_SalesShipmentLine.SetRange("No.", RecSalesLine."No.");
                     L_SalesShipmentLine.SetRange(Type, L_SalesShipmentLine.Type::Item);
                     L_SalesShipmentLine.SetRange("Order Date", RecSalesHeader."Order Date");
+                    L_SalesShipmentLine.SetRange("Sell-to Customer No.", RecSalesLine."Sell-to Customer No.");
                     if L_SalesShipmentLine.FindSet() then begin
                         repeat
                             L_DimensionSetEntry.Reset();
@@ -808,6 +878,7 @@ codeunit 60600 "All Event"
                             end;
                         until L_SalesShipmentLine.Next() = 0;
                     end;
+                    //New Code added discussed with Team--
 
                     //Calculate L_OrderQty Quantity++
                     //L_OrderQty := RecSalesLine.Quantity;
@@ -993,10 +1064,78 @@ codeunit 60600 "All Event"
                 IF L_MaxOrderQty.FINDFIRST THEN BEGIN
                     WarningtypeOpion := Format(L_MaxOrderQty."Warning Type");
 
-                    //Calculate Existing Order Quantity+++++
+                    // //Calculate Existing Order Quantity+++++
+                    // L_SalesLine.Reset();
+                    // L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
+                    // L_SalesLine.SETFILTER("Document No.", '<>%1', RecSalesLine."Document No.");
+                    // L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
+                    // L_SalesLine.SetRange("No.", RecSalesLine."No.");
+                    // L_SalesLine.SetRange("Order Date", RecSalesHeader."Order Date");
+                    // if L_SalesLine.FindSet() then begin
+                    //     repeat
+                    //         L_SaleasHeader.Reset();
+                    //         L_SaleasHeader.SetRange("Document Type", L_SalesLine."Document Type");
+                    //         L_SaleasHeader.SetRange("No.", L_SalesLine."Document No.");
+                    //         if L_SaleasHeader.FindFirst() then begin
+                    //             L_DimensionSetEntry.Reset();
+                    //             L_DimensionSetEntry.SetRange("Dimension Set ID", L_SaleasHeader."Dimension Set ID");
+                    //             L_DimensionSetEntry.SetRange("Dimension Code", L_DefaultDimension."Dimension Code");
+                    //             L_DimensionSetEntry.SetRange("Dimension Value Code", L_DefaultDimension."Dimension Value Code");
+                    //             if L_DimensionSetEntry.FindFirst() then begin
+                    //                 L_DayOrderQty += L_SalesLine."Outstanding Quantity";
+                    //             end;
+                    //         end;
+                    //     until L_SalesLine.Next() = 0;
+                    // end;
+
+                    // //Calculate Current Order Quantity but if same item in Different line++
+                    // L_SalesLine.Reset();
+                    // L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
+                    // L_SalesLine.SetRange("Document No.", RecSalesLine."Document No.");
+                    // L_SalesLine.SetFilter("Line No.", '<>%1', RecSalesLine."Line No.");
+                    // L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
+                    // L_SalesLine.SetRange("No.", RecSalesLine."No.");
+                    // L_SalesLine.SetRange("Order Date", RecSalesHeader."Order Date");
+                    // if L_SalesLine.FindSet() then begin
+                    //     repeat
+                    //         L_SaleasHeader.Reset();
+                    //         L_SaleasHeader.SetRange("Document Type", L_SalesLine."Document Type");
+                    //         L_SaleasHeader.SetRange("No.", L_SalesLine."Document No.");
+                    //         if L_SaleasHeader.FindFirst() then begin
+                    //             L_DimensionSetEntry.Reset();
+                    //             L_DimensionSetEntry.SetRange("Dimension Set ID", L_SaleasHeader."Dimension Set ID");
+                    //             L_DimensionSetEntry.SetRange("Dimension Code", L_DefaultDimension."Dimension Code");
+                    //             L_DimensionSetEntry.SetRange("Dimension Value Code", L_DefaultDimension."Dimension Value Code");
+                    //             if L_DimensionSetEntry.FindFirst() then begin
+                    //                 L_DayOrderQty += L_SalesLine."Outstanding Quantity";
+                    //             end;
+                    //         end;
+                    //     until L_SalesLine.Next() = 0;
+                    // end;
+
+                    // //Calculate Shipped Quantity++
+                    // L_SalesShipmentLine.Reset();
+                    // L_SalesShipmentLine.SetRange("No.", RecSalesLine."No.");
+                    // L_SalesShipmentLine.SetRange(Type, L_SalesShipmentLine.Type::Item);
+                    // L_SalesShipmentLine.SetRange("Order Date", RecSalesHeader."Order Date");
+                    // if L_SalesShipmentLine.FindSet() then begin
+                    //     repeat
+                    //         L_DimensionSetEntry.Reset();
+                    //         L_DimensionSetEntry.SetRange("Dimension Set ID", L_SalesShipmentLine."Dimension Set ID");
+                    //         L_DimensionSetEntry.SetRange("Dimension Code", L_DefaultDimension."Dimension Code");
+                    //         L_DimensionSetEntry.SetRange("Dimension Value Code", L_DefaultDimension."Dimension Value Code");
+                    //         if L_DimensionSetEntry.FindFirst() then begin
+                    //             L_DayOrderQty += L_SalesShipmentLine.Quantity;
+                    //         end;
+                    //     until L_SalesShipmentLine.Next() = 0;
+                    // end;
+
+                    //New Code added discussed with Team++
+                    //Calculate Existing Order Quantity++++
                     L_SalesLine.Reset();
                     L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
                     L_SalesLine.SETFILTER("Document No.", '<>%1', RecSalesLine."Document No.");
+                    L_SalesLine.SetRange("Sell-to Customer No.", RecSalesLine."Sell-to Customer No.");
                     L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
                     L_SalesLine.SetRange("No.", RecSalesLine."No.");
                     L_SalesLine.SetRange("Order Date", RecSalesHeader."Order Date");
@@ -1015,6 +1154,7 @@ codeunit 60600 "All Event"
                                 end;
                             end;
                         until L_SalesLine.Next() = 0;
+
                     end;
 
                     //Calculate Current Order Quantity but if same item in Different line++
@@ -1042,11 +1182,12 @@ codeunit 60600 "All Event"
                         until L_SalesLine.Next() = 0;
                     end;
 
-                    //Calculate Shipped Quantity++
+                    //Calculate Shipped Quantity+++++
                     L_SalesShipmentLine.Reset();
                     L_SalesShipmentLine.SetRange("No.", RecSalesLine."No.");
                     L_SalesShipmentLine.SetRange(Type, L_SalesShipmentLine.Type::Item);
                     L_SalesShipmentLine.SetRange("Order Date", RecSalesHeader."Order Date");
+                    L_SalesShipmentLine.SetRange("Sell-to Customer No.", RecSalesLine."Sell-to Customer No.");
                     if L_SalesShipmentLine.FindSet() then begin
                         repeat
                             L_DimensionSetEntry.Reset();
@@ -1058,6 +1199,7 @@ codeunit 60600 "All Event"
                             end;
                         until L_SalesShipmentLine.Next() = 0;
                     end;
+                    //New Code added discussed with Team--
 
                     //Calculate L_OrderQty Quantity++
                     //L_OrderQty := RecSalesLine.Quantity;
@@ -1243,10 +1385,78 @@ codeunit 60600 "All Event"
                 IF L_MaxOrderQty.FINDFIRST THEN BEGIN
                     WarningtypeOpion := Format(L_MaxOrderQty."Warning Type");
 
+                    // //Calculate Existing Order Quantity++
+                    // L_SalesLine.Reset();
+                    // L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
+                    // L_SalesLine.SETFILTER("Document No.", '<>%1', RecSalesLine."Document No.");
+                    // L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
+                    // L_SalesLine.SetRange("Item Category Code", ItemCat);
+                    // L_SalesLine.SetRange("Order Date", RecSalesHeader."Order Date");
+                    // if L_SalesLine.FindSet() then begin
+                    //     repeat
+                    //         L_SaleasHeader.Reset();
+                    //         L_SaleasHeader.SetRange("Document Type", L_SalesLine."Document Type");
+                    //         L_SaleasHeader.SetRange("No.", L_SalesLine."Document No.");
+                    //         if L_SaleasHeader.FindFirst() then begin
+                    //             L_DimensionSetEntry.Reset();
+                    //             L_DimensionSetEntry.SetRange("Dimension Set ID", L_SaleasHeader."Dimension Set ID");
+                    //             L_DimensionSetEntry.SetRange("Dimension Code", L_DefaultDimension."Dimension Code");
+                    //             L_DimensionSetEntry.SetRange("Dimension Value Code", L_DefaultDimension."Dimension Value Code");
+                    //             if L_DimensionSetEntry.FindFirst() then begin
+                    //                 L_DayOrderQty += L_SalesLine."Outstanding Quantity";
+                    //             end;
+                    //         end;
+                    //     until L_SalesLine.Next() = 0;
+                    // end;
+
+                    // //Calculate Current Order Quantity but if same item in Different line++
+                    // L_SalesLine.Reset();
+                    // L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
+                    // L_SalesLine.SetRange("Document No.", RecSalesLine."Document No.");
+                    // L_SalesLine.SetFilter("Line No.", '<>%1', RecSalesLine."Line No.");
+                    // L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
+                    // L_SalesLine.SetRange("Item Category Code", ItemCat);
+                    // L_SalesLine.SetRange("Order Date", RecSalesHeader."Order Date");
+                    // if L_SalesLine.FindSet() then begin
+                    //     repeat
+                    //         L_SaleasHeader.Reset();
+                    //         L_SaleasHeader.SetRange("Document Type", L_SalesLine."Document Type");
+                    //         L_SaleasHeader.SetRange("No.", L_SalesLine."Document No.");
+                    //         if L_SaleasHeader.FindFirst() then begin
+                    //             L_DimensionSetEntry.Reset();
+                    //             L_DimensionSetEntry.SetRange("Dimension Set ID", L_SaleasHeader."Dimension Set ID");
+                    //             L_DimensionSetEntry.SetRange("Dimension Code", L_DefaultDimension."Dimension Code");
+                    //             L_DimensionSetEntry.SetRange("Dimension Value Code", L_DefaultDimension."Dimension Value Code");
+                    //             if L_DimensionSetEntry.FindFirst() then begin
+                    //                 L_DayOrderQty += L_SalesLine."Outstanding Quantity";
+                    //             end;
+                    //         end;
+                    //     until L_SalesLine.Next() = 0;
+                    // end;
+
+                    // //Calculate Shipped Quantity++
+                    // L_SalesShipmentLine.Reset();
+                    // L_SalesShipmentLine.SetRange("Item Category Code", ItemCat);
+                    // L_SalesShipmentLine.SetRange(Type, L_SalesShipmentLine.Type::Item);
+                    // L_SalesShipmentLine.SetRange("Order Date", RecSalesHeader."Order Date");
+                    // if L_SalesShipmentLine.FindSet() then begin
+                    //     repeat
+                    //         L_DimensionSetEntry.Reset();
+                    //         L_DimensionSetEntry.SetRange("Dimension Set ID", L_SalesShipmentLine."Dimension Set ID");
+                    //         L_DimensionSetEntry.SetRange("Dimension Code", L_DefaultDimension."Dimension Code");
+                    //         L_DimensionSetEntry.SetRange("Dimension Value Code", L_DefaultDimension."Dimension Value Code");
+                    //         if L_DimensionSetEntry.FindFirst() then begin
+                    //             L_DayOrderQty += L_SalesShipmentLine.Quantity;
+                    //         end;
+                    //     until L_SalesShipmentLine.Next() = 0;
+                    // end;
+
+                    //New Code added discussed with Team++
                     //Calculate Existing Order Quantity++
                     L_SalesLine.Reset();
                     L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
                     L_SalesLine.SETFILTER("Document No.", '<>%1', RecSalesLine."Document No.");
+                    L_SalesLine.SetRange("Sell-to Customer No.", RecSalesLine."Sell-to Customer No.");
                     L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
                     L_SalesLine.SetRange("Item Category Code", ItemCat);
                     L_SalesLine.SetRange("Order Date", RecSalesHeader."Order Date");
@@ -1297,6 +1507,7 @@ codeunit 60600 "All Event"
                     L_SalesShipmentLine.SetRange("Item Category Code", ItemCat);
                     L_SalesShipmentLine.SetRange(Type, L_SalesShipmentLine.Type::Item);
                     L_SalesShipmentLine.SetRange("Order Date", RecSalesHeader."Order Date");
+                    L_SalesShipmentLine.SetRange("Sell-to Customer No.", RecSalesLine."Sell-to Customer No.");
                     if L_SalesShipmentLine.FindSet() then begin
                         repeat
                             L_DimensionSetEntry.Reset();
@@ -1308,6 +1519,7 @@ codeunit 60600 "All Event"
                             end;
                         until L_SalesShipmentLine.Next() = 0;
                     end;
+                    //New Code added discussed with Team++
 
                     //Calculate L_OrderQty Quantity++
                     //L_OrderQty := RecSalesLine.Quantity;
@@ -1368,10 +1580,78 @@ codeunit 60600 "All Event"
                     if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
                         WarningtypeOpion := Format(L_MaxOrderQty."Warning Type");
 
+                        // //Calculate Existing Order Quantity++++
+                        // L_SalesLine.Reset();
+                        // L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
+                        // L_SalesLine.SETFILTER("Document No.", '<>%1', RecSalesLine."Document No.");
+                        // L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
+                        // L_SalesLine.SetRange("No.", RecSalesLine."No.");
+                        // L_SalesLine.SETFILTER("Order Date", '%1..%2', Sdate, Edate);
+                        // if L_SalesLine.FindSet() then begin
+                        //     repeat
+                        //         L_SaleasHeader.Reset();
+                        //         L_SaleasHeader.SetRange("Document Type", L_SalesLine."Document Type");
+                        //         L_SaleasHeader.SetRange("No.", L_SalesLine."Document No.");
+                        //         if L_SaleasHeader.FindFirst() then begin
+                        //             L_DimensionSetEntry.Reset();
+                        //             L_DimensionSetEntry.SetRange("Dimension Set ID", L_SaleasHeader."Dimension Set ID");
+                        //             L_DimensionSetEntry.SetRange("Dimension Code", L_DefaultDimension."Dimension Code");
+                        //             L_DimensionSetEntry.SetRange("Dimension Value Code", L_DefaultDimension."Dimension Value Code");
+                        //             if L_DimensionSetEntry.FindFirst() then begin
+                        //                 L_DayOrderQty += L_SalesLine."Outstanding Quantity";
+                        //             end;
+                        //         end;
+                        //     until L_SalesLine.Next() = 0;
+                        // end;
+
+                        // //Calculate Current Order Quantity but if same item in Different line++
+                        // L_SalesLine.Reset();
+                        // L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
+                        // L_SalesLine.SetRange("Document No.", RecSalesLine."Document No.");
+                        // L_SalesLine.SetFilter("Line No.", '<>%1', RecSalesLine."Line No.");
+                        // L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
+                        // L_SalesLine.SetRange("No.", RecSalesLine."No.");
+                        // L_SalesLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                        // if L_SalesLine.FindSet() then begin
+                        //     repeat
+                        //         L_SaleasHeader.Reset();
+                        //         L_SaleasHeader.SetRange("Document Type", L_SalesLine."Document Type");
+                        //         L_SaleasHeader.SetRange("No.", L_SalesLine."Document No.");
+                        //         if L_SaleasHeader.FindFirst() then begin
+                        //             L_DimensionSetEntry.Reset();
+                        //             L_DimensionSetEntry.SetRange("Dimension Set ID", L_SaleasHeader."Dimension Set ID");
+                        //             L_DimensionSetEntry.SetRange("Dimension Code", L_DefaultDimension."Dimension Code");
+                        //             L_DimensionSetEntry.SetRange("Dimension Value Code", L_DefaultDimension."Dimension Value Code");
+                        //             if L_DimensionSetEntry.FindFirst() then begin
+                        //                 L_DayOrderQty += L_SalesLine."Outstanding Quantity";
+                        //             end;
+                        //         end;
+                        //     until L_SalesLine.Next() = 0;
+                        // end;
+
+                        // //Calculate Shipped Quantity++++
+                        // L_SalesShipmentLine.Reset();
+                        // L_SalesShipmentLine.SetRange("No.", RecSalesLine."No.");
+                        // L_SalesShipmentLine.SetRange(Type, L_SalesShipmentLine.Type::Item);
+                        // L_SalesShipmentLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                        // if L_SalesShipmentLine.FindSet() then begin
+                        //     repeat
+                        //         L_DimensionSetEntry.Reset();
+                        //         L_DimensionSetEntry.SetRange("Dimension Set ID", L_SalesShipmentLine."Dimension Set ID");
+                        //         L_DimensionSetEntry.SetRange("Dimension Code", L_DefaultDimension."Dimension Code");
+                        //         L_DimensionSetEntry.SetRange("Dimension Value Code", L_DefaultDimension."Dimension Value Code");
+                        //         if L_DimensionSetEntry.FindFirst() then begin
+                        //             L_DayOrderQty += L_SalesShipmentLine.Quantity;
+                        //         end;
+                        //     until L_SalesShipmentLine.Next() = 0;
+                        // end;
+
+                        //New Code added discussed with Team++
                         //Calculate Existing Order Quantity++++
                         L_SalesLine.Reset();
                         L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
                         L_SalesLine.SETFILTER("Document No.", '<>%1', RecSalesLine."Document No.");
+                        L_SalesLine.SetRange("Sell-to Customer No.", RecSalesLine."Sell-to Customer No.");
                         L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
                         L_SalesLine.SetRange("No.", RecSalesLine."No.");
                         L_SalesLine.SETFILTER("Order Date", '%1..%2', Sdate, Edate);
@@ -1422,6 +1702,7 @@ codeunit 60600 "All Event"
                         L_SalesShipmentLine.SetRange("No.", RecSalesLine."No.");
                         L_SalesShipmentLine.SetRange(Type, L_SalesShipmentLine.Type::Item);
                         L_SalesShipmentLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                        L_SalesShipmentLine.SetRange("Sell-to Customer No.", RecSalesLine."Sell-to Customer No.");
                         if L_SalesShipmentLine.FindSet() then begin
                             repeat
                                 L_DimensionSetEntry.Reset();
@@ -1433,6 +1714,7 @@ codeunit 60600 "All Event"
                                 end;
                             until L_SalesShipmentLine.Next() = 0;
                         end;
+                        //New Code added discussed with Team--
 
                         //Calculate L_OrderQty Quantity++
                         //L_OrderQty := RecSalesLine.Quantity;
@@ -1493,10 +1775,78 @@ codeunit 60600 "All Event"
                     if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
                         WarningtypeOpion := Format(L_MaxOrderQty."Warning Type");
 
+                        // //Calculate Existing Order Quantity++++
+                        // L_SalesLine.Reset();
+                        // L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
+                        // L_SalesLine.SETFILTER("Document No.", '<>%1', RecSalesLine."Document No.");
+                        // L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
+                        // L_SalesLine.SetRange("No.", RecSalesLine."No.");
+                        // L_SalesLine.SETFILTER("Order Date", '%1..%2', Sdate, Edate);
+                        // if L_SalesLine.FindSet() then begin
+                        //     repeat
+                        //         L_SaleasHeader.Reset();
+                        //         L_SaleasHeader.SetRange("Document Type", L_SalesLine."Document Type");
+                        //         L_SaleasHeader.SetRange("No.", L_SalesLine."Document No.");
+                        //         if L_SaleasHeader.FindFirst() then begin
+                        //             L_DimensionSetEntry.Reset();
+                        //             L_DimensionSetEntry.SetRange("Dimension Set ID", L_SaleasHeader."Dimension Set ID");
+                        //             L_DimensionSetEntry.SetRange("Dimension Code", L_DefaultDimension."Dimension Code");
+                        //             L_DimensionSetEntry.SetRange("Dimension Value Code", L_DefaultDimension."Dimension Value Code");
+                        //             if L_DimensionSetEntry.FindFirst() then begin
+                        //                 L_DayOrderQty += L_SalesLine."Outstanding Quantity";
+                        //             end;
+                        //         end;
+                        //     until L_SalesLine.Next() = 0;
+                        // end;
+
+                        // //Calculate Current Order Quantity but if same item in Different line++
+                        // L_SalesLine.Reset();
+                        // L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
+                        // L_SalesLine.SetRange("Document No.", RecSalesLine."Document No.");
+                        // L_SalesLine.SetFilter("Line No.", '<>%1', RecSalesLine."Line No.");
+                        // L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
+                        // L_SalesLine.SetRange("No.", RecSalesLine."No.");
+                        // L_SalesLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                        // if L_SalesLine.FindSet() then begin
+                        //     repeat
+                        //         L_SaleasHeader.Reset();
+                        //         L_SaleasHeader.SetRange("Document Type", L_SalesLine."Document Type");
+                        //         L_SaleasHeader.SetRange("No.", L_SalesLine."Document No.");
+                        //         if L_SaleasHeader.FindFirst() then begin
+                        //             L_DimensionSetEntry.Reset();
+                        //             L_DimensionSetEntry.SetRange("Dimension Set ID", L_SaleasHeader."Dimension Set ID");
+                        //             L_DimensionSetEntry.SetRange("Dimension Code", L_DefaultDimension."Dimension Code");
+                        //             L_DimensionSetEntry.SetRange("Dimension Value Code", L_DefaultDimension."Dimension Value Code");
+                        //             if L_DimensionSetEntry.FindFirst() then begin
+                        //                 L_DayOrderQty += L_SalesLine."Outstanding Quantity";
+                        //             end;
+                        //         end;
+                        //     until L_SalesLine.Next() = 0;
+                        // end;
+
+                        // //Calculate Shipped Quantity++++
+                        // L_SalesShipmentLine.Reset();
+                        // L_SalesShipmentLine.SetRange("No.", RecSalesLine."No.");
+                        // L_SalesShipmentLine.SetRange(Type, L_SalesShipmentLine.Type::Item);
+                        // L_SalesShipmentLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                        // if L_SalesShipmentLine.FindSet() then begin
+                        //     repeat
+                        //         L_DimensionSetEntry.Reset();
+                        //         L_DimensionSetEntry.SetRange("Dimension Set ID", L_SalesShipmentLine."Dimension Set ID");
+                        //         L_DimensionSetEntry.SetRange("Dimension Code", L_DefaultDimension."Dimension Code");
+                        //         L_DimensionSetEntry.SetRange("Dimension Value Code", L_DefaultDimension."Dimension Value Code");
+                        //         if L_DimensionSetEntry.FindFirst() then begin
+                        //             L_DayOrderQty += L_SalesShipmentLine.Quantity;
+                        //         end;
+                        //     until L_SalesShipmentLine.Next() = 0;
+                        // end;
+
+                        //New Code added discussed with Team++
                         //Calculate Existing Order Quantity++++
                         L_SalesLine.Reset();
                         L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
                         L_SalesLine.SETFILTER("Document No.", '<>%1', RecSalesLine."Document No.");
+                        L_SalesLine.SetRange("Sell-to Customer No.", RecSalesLine."Sell-to Customer No.");
                         L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
                         L_SalesLine.SetRange("No.", RecSalesLine."No.");
                         L_SalesLine.SETFILTER("Order Date", '%1..%2', Sdate, Edate);
@@ -1545,6 +1895,7 @@ codeunit 60600 "All Event"
                         //Calculate Shipped Quantity++++
                         L_SalesShipmentLine.Reset();
                         L_SalesShipmentLine.SetRange("No.", RecSalesLine."No.");
+                        L_SalesShipmentLine.SetRange("Sell-to Customer No.", RecSalesLine."Sell-to Customer No.");
                         L_SalesShipmentLine.SetRange(Type, L_SalesShipmentLine.Type::Item);
                         L_SalesShipmentLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
                         if L_SalesShipmentLine.FindSet() then begin
@@ -1558,6 +1909,9 @@ codeunit 60600 "All Event"
                                 end;
                             until L_SalesShipmentLine.Next() = 0;
                         end;
+                        //New Code added discussed with Team--
+
+
 
                         //Calculate L_OrderQty Quantity++
                         //L_OrderQty := RecSalesLine.Quantity;
@@ -1619,10 +1973,78 @@ codeunit 60600 "All Event"
                     if (L_MaxOrderQty."Start Date" <= RecSalesHeader."Order Date") and (L_MaxOrderQty."End Date" >= RecSalesHeader."Order Date") then begin
                         WarningtypeOpion := Format(L_MaxOrderQty."Warning Type");
 
+                        // //Calculate Existing Order Quantity++++
+                        // L_SalesLine.Reset();
+                        // L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
+                        // L_SalesLine.SETFILTER("Document No.", '<>%1', RecSalesLine."Document No.");
+                        // L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
+                        // L_SalesLine.SetRange("Item Category Code", ItemCat);
+                        // L_SalesLine.SETFILTER("Order Date", '%1..%2', Sdate, Edate);
+                        // if L_SalesLine.FindSet() then begin
+                        //     repeat
+                        //         L_SaleasHeader.Reset();
+                        //         L_SaleasHeader.SetRange("Document Type", L_SalesLine."Document Type");
+                        //         L_SaleasHeader.SetRange("No.", L_SalesLine."Document No.");
+                        //         if L_SaleasHeader.FindFirst() then begin
+                        //             L_DimensionSetEntry.Reset();
+                        //             L_DimensionSetEntry.SetRange("Dimension Set ID", L_SaleasHeader."Dimension Set ID");
+                        //             L_DimensionSetEntry.SetRange("Dimension Code", L_DefaultDimension."Dimension Code");
+                        //             L_DimensionSetEntry.SetRange("Dimension Value Code", L_DefaultDimension."Dimension Value Code");
+                        //             if L_DimensionSetEntry.FindFirst() then begin
+                        //                 L_DayOrderQty += L_SalesLine."Outstanding Quantity";
+                        //             end;
+                        //         end;
+                        //     until L_SalesLine.Next() = 0;
+                        // end;
+
+                        // //Calculate Current Order Quantity but if same item in Different line++
+                        // L_SalesLine.Reset();
+                        // L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
+                        // L_SalesLine.SetRange("Document No.", RecSalesLine."Document No.");
+                        // L_SalesLine.SetFilter("Line No.", '<>%1', RecSalesLine."Line No.");
+                        // L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
+                        // L_SalesLine.SetRange("Item Category Code", ItemCat);
+                        // L_SalesLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                        // if L_SalesLine.FindSet() then begin
+                        //     repeat
+                        //         L_SaleasHeader.Reset();
+                        //         L_SaleasHeader.SetRange("Document Type", L_SalesLine."Document Type");
+                        //         L_SaleasHeader.SetRange("No.", L_SalesLine."Document No.");
+                        //         if L_SaleasHeader.FindFirst() then begin
+                        //             L_DimensionSetEntry.Reset();
+                        //             L_DimensionSetEntry.SetRange("Dimension Set ID", L_SaleasHeader."Dimension Set ID");
+                        //             L_DimensionSetEntry.SetRange("Dimension Code", L_DefaultDimension."Dimension Code");
+                        //             L_DimensionSetEntry.SetRange("Dimension Value Code", L_DefaultDimension."Dimension Value Code");
+                        //             if L_DimensionSetEntry.FindFirst() then begin
+                        //                 L_DayOrderQty += L_SalesLine."Outstanding Quantity";
+                        //             end;
+                        //         end;
+                        //     until L_SalesLine.Next() = 0;
+                        // end;
+
+                        // //Calculate Shipped Quantity++++
+                        // L_SalesShipmentLine.Reset();
+                        // L_SalesShipmentLine.SetRange("Item Category Code", ItemCat);
+                        // L_SalesShipmentLine.SetRange(Type, L_SalesShipmentLine.Type::Item);
+                        // L_SalesShipmentLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                        // if L_SalesShipmentLine.FindSet() then begin
+                        //     repeat
+                        //         L_DimensionSetEntry.Reset();
+                        //         L_DimensionSetEntry.SetRange("Dimension Set ID", L_SalesShipmentLine."Dimension Set ID");
+                        //         L_DimensionSetEntry.SetRange("Dimension Code", L_DefaultDimension."Dimension Code");
+                        //         L_DimensionSetEntry.SetRange("Dimension Value Code", L_DefaultDimension."Dimension Value Code");
+                        //         if L_DimensionSetEntry.FindFirst() then begin
+                        //             L_DayOrderQty += L_SalesShipmentLine.Quantity;
+                        //         end;
+                        //     until L_SalesShipmentLine.Next() = 0;
+                        // end;
+
+                        //New Code added discussed with Team++
                         //Calculate Existing Order Quantity++++
                         L_SalesLine.Reset();
                         L_SalesLine.SetRange("Document Type", L_SalesLine."Document Type"::Order);
                         L_SalesLine.SETFILTER("Document No.", '<>%1', RecSalesLine."Document No.");
+                        L_SalesLine.SetRange("Sell-to Customer No.", RecSalesLine."Sell-to Customer No.");
                         L_SalesLine.SetRange(Type, L_SalesLine.Type::Item);
                         L_SalesLine.SetRange("Item Category Code", ItemCat);
                         L_SalesLine.SETFILTER("Order Date", '%1..%2', Sdate, Edate);
@@ -1671,6 +2093,7 @@ codeunit 60600 "All Event"
                         //Calculate Shipped Quantity++++
                         L_SalesShipmentLine.Reset();
                         L_SalesShipmentLine.SetRange("Item Category Code", ItemCat);
+                        L_SalesShipmentLine.SetRange("Sell-to Customer No.", RecSalesLine."Sell-to Customer No.");
                         L_SalesShipmentLine.SetRange(Type, L_SalesShipmentLine.Type::Item);
                         L_SalesShipmentLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
                         if L_SalesShipmentLine.FindSet() then begin
@@ -1684,6 +2107,8 @@ codeunit 60600 "All Event"
                                 end;
                             until L_SalesShipmentLine.Next() = 0;
                         end;
+                        //New Code added discussed with Team--
+
 
                         //Calculate L_OrderQty Quantity++
                         //L_OrderQty := RecSalesLine.Quantity;
