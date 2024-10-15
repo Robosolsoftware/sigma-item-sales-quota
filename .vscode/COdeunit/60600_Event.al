@@ -71,7 +71,7 @@ codeunit 60600 "All Event"
 
     var
         myInt: Integer;
-        CurrFieldNoGlo: Integer;
+        G_CurrFieldNoGlo: Integer;
         MaximumOrderQuantity: Record "Sales Quota";
         RecUserSetup: Record "User Setup";
 
@@ -86,9 +86,9 @@ codeunit 60600 "All Event"
         CurrentMonth_Text: Text;
         EndDate: Date;
     begin
+        Clear(G_CurrFieldNoGlo);
         Clear(CurrentMonthStartDate);
         Clear(EndDate);
-
 
         SalesHeader.Reset();
         SalesHeader.SetRange("No.", P_SalesLine."Document No.");
@@ -291,8 +291,8 @@ codeunit 60600 "All Event"
 
         Clear(CurrentMonthStartDateAmt);
         Clear(EndDateAmt);
-        IF CurrFieldNoGlo <> 15 THEN
-            EXIT;
+        // IF CurrFieldNoGlo <> 15 THEN
+        //     EXIT;
 
         SalesHeaderAmt.Reset();
         SalesHeaderAmt.SetRange("No.", P_SalesLine."Document No.");
@@ -6313,6 +6313,8 @@ codeunit 60600 "All Event"
             end else
                 _SalesLine."Sales Quota Approval" := false;
         end;
+        if GuiAllowed = false then
+            _SalesLine.Modify();
     end;
 
     procedure CheckingRemainingAmt(RemAmt: Decimal; Errcode: code[20])
@@ -6340,8 +6342,8 @@ codeunit 60600 "All Event"
     begin
         //IF CurrFieldNo <> FIELDNO(Quantity) THEN//azhar
         //    EXIT;//azhar
-        IF CurrFieldNoGlo <> 15 THEN//azhar
-            EXIT;//azhar
+        // IF CurrFieldNoGlo <> 15 THEN//azhar
+        //     EXIT;//azhar
         //GetSalesHeader;//azhar
         SalesHeader.Reset();
         SalesHeader.SetRange("No.", P_SalesLine."Document No.");
