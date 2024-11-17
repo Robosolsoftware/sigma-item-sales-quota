@@ -325,6 +325,7 @@ page 60602 "Quota By Quantity"
     var
     begin
         Rec.Validate("Restriction Type", Rec."Restriction Type"::"By Quantity");
+        Rec.Validate("Item Type", Rec."Item Type"::Item);
     end;
 
     trigger OnAfterGetCurrRecord()
