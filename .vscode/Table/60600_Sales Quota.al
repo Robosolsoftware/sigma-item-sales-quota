@@ -425,12 +425,12 @@ table 60600 "Sales Quota"
             L_WarehouseClassCode.Reset();
             L_WarehouseClassCode.SetRange(Code, L_Item."Warehouse Class Code");
             if L_WarehouseClassCode.FindFirst() then begin
-                if (L_WarehouseClassCode.CD = true) then begin
+                if (L_WarehouseClassCode."Quota Restriction" = true) then begin
                     L_UserSetup.Reset();
                     L_UserSetup.SetRange("User ID", UserId);
                     L_UserSetup.SetRange("Allowed Quota Manag. for CD", true);
                     if not L_UserSetup.FindFirst() then
-                        Error('You do not have permission to Add/Edit/Remove CD product');
+                        Error('You do not have permission to Add/Edit/Remove Restricted product');
                 end;
             end;
         end;

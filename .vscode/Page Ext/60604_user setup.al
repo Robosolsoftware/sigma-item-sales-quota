@@ -15,7 +15,7 @@ pageextension 60604 UserSetupSalesQ extends "User Setup"
             field("Allowed Quota Manag. for CD"; Rec."Allowed Quota Manag. for CD")
             {
                 ApplicationArea = All;
-                ToolTip = 'Specify if you want user who edit/add/remove CD product on sales quota by quantity';
+                ToolTip = 'Specify if you want user who edit/add/remove Restricted product on sales quota by quantity';
             }
         }
     }

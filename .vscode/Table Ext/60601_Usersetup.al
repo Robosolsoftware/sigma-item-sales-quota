@@ -15,7 +15,7 @@ tableextension 60601 UserSetupSalesQ extends "User Setup"
         field(60603; "Allowed Quota Manag. for CD"; Boolean)
         {
             DataClassification = ToBeClassified;
-            Caption = 'Allowed Quota Management for CD';
+            Caption = 'Allowed Quota Management for Restricted Item';
         }
     }
 

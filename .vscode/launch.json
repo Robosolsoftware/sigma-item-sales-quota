@@ -7,7 +7,7 @@
             "type": "al",
             "environmentType": "Sandbox",
             //"environmentName": "Copy_01092024",
-            "environmentName": "Copy_14112024",
+            "environmentName": "SIGMAFTP_DEV",
             "tenant": "55614040-8b3d-41a1-bae8-2140b06bd0c3",
             "startupObjectId": 22,
             "startupObjectType": "Page",
@@ -15,7 +15,7 @@
             "launchBrowser": true,
             "enableLongRunningSqlStatements": true,
             "enableSqlInformationDebugger": true,
-            "schemaUpdateMode": "ForceSync"
+            "schemaUpdateMode": "Synchronize"
         }
     ]
 }
