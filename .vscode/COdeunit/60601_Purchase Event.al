@@ -105,6 +105,7 @@ codeunit 60601 "Purchase Order Restriction"
         RecitemAmt.Reset();
         RecitemAmt.SetRange("No.", P_PurchaseLine."No.");
         if RecitemAmt.FindFirst() then;
+        RecitemAmt.CalcFields("Child Category");
 
         //StartDateEndDateCalculation
         currentMonthAmt := Date2DMY(PurchaseHeader."Order Date", 2);
@@ -121,49 +122,49 @@ codeunit 60601 "Purchase Order Restriction"
         EndDateAmt := CalcDate('-1D', EndDateAmt);
         //EndDate--
 
-        //Per Order all 6 Validation++
-        //-------------1: All Vendor, All Item, ErrorCode(AAPOAMT)-------------
-        PerOrderAllVendorAllItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
-        //-------------2: All Vendor, Selected Item, ErrorCode(ASIPOAMT)-------------
-        PerOrderAllVendorSelItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
-        //-------------3: All Vendor, Selected Item Category, ErrorCode(ASICPOAMT)-------------
-        PerOrderAllVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
-        //-------------4: Selected Vendor, All Item, ErrorCode(SCAPOAMT)-------------
-        PerOrderSelVendorAllItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
-        //-------------5: Selected Vendor, Selected Item, ErrorCode(SCSIPOAMT)-------------
-        PerOrderSelVendorSelItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
-        //-------------6: Selected Vendor, Selected Item Category, ErrorCode(SCSICPOAMT)-------------
-        PerOrderSelVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
-        //Per Order all 6 Validation++
+        // //Per Order all 6 Validation++
+        // //-------------1: All Vendor, All Item, ErrorCode(AAPOAMT)-------------
+        // PerOrderAllVendorAllItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
+        // //-------------2: All Vendor, Selected Item, ErrorCode(ASIPOAMT)-------------
+        // PerOrderAllVendorSelItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
+        // //-------------3: All Vendor, Selected Item Category, ErrorCode(ASICPOAMT)-------------
+        // PerOrderAllVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Child Category");
+        // //-------------4: Selected Vendor, All Item, ErrorCode(SCAPOAMT)-------------
+        // PerOrderSelVendorAllItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
+        // //-------------5: Selected Vendor, Selected Item, ErrorCode(SCSIPOAMT)-------------
+        // PerOrderSelVendorSelItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
+        // //-------------6: Selected Vendor, Selected Item Category, ErrorCode(SCSICPOAMT)-------------
+        // PerOrderSelVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Child Category");
+        // //Per Order all 6 Validation++
 
-        //Per Day all 6 validation++
-        //-------------1: All Vendor, All Item, ErrorCode(AAPDAMT)-------------
-        PerDayAllVendorAllItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
-        //-------------2: All Vendor, Selected Item, ErrorCode(ASIPDAMT)-------------
-        PerDayAllVendorSelItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
-        //-------------3: All Vendor, Selected Item Category, ErrorCode(ASICPDAMT)-------------
-        PerDayAllVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
-        //-------------4: Selected Vendor, All Item, ErrorCode(SCAPDAMT)-------------
-        PerDaySelVendorAllItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
-        //-------------5: Selected Vendor, Selected Item, ErrorCode(SCSIPDAMT)-------------
-        PerDaySelVendorSelItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
-        //-------------6: Selected Vendor, Selected Item Category, ErrorCode(SCSICPDAMT)-------
-        PerDaySelVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
-        //Per Day all 6 validation--
+        // //Per Day all 6 validation++
+        // //-------------1: All Vendor, All Item, ErrorCode(AAPDAMT)-------------
+        // PerDayAllVendorAllItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
+        // //-------------2: All Vendor, Selected Item, ErrorCode(ASIPDAMT)-------------
+        // PerDayAllVendorSelItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
+        // //-------------3: All Vendor, Selected Item Category, ErrorCode(ASICPDAMT)-------------
+        // PerDayAllVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Child Category");
+        // //-------------4: Selected Vendor, All Item, ErrorCode(SCAPDAMT)-------------
+        // PerDaySelVendorAllItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
+        // //-------------5: Selected Vendor, Selected Item, ErrorCode(SCSIPDAMT)-------------
+        // PerDaySelVendorSelItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code");
+        // //-------------6: Selected Vendor, Selected Item Category, ErrorCode(SCSICPDAMT)-------
+        // PerDaySelVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Child Category");
+        // //Per Day all 6 validation--
 
         //Per Month all 6 validation++
         //-------------1: All Customer, All Item, ErrorCode(AAPMAMT)-------------
-        PerMonthAllVendorAllItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
+        //PerMonthAllVendorAllItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
         //-------------2: All Customer, Selected Item, ErrorCode(ASIPMAMT)-------------
-        PerMonthAllVendorSelItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
+        //PerMonthAllVendorSelItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
         //-------------3: All Customer, Selected Item Category, ErrorCode(ASICPMAMT)-------------
-        PerMonthAllCustomerSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
+        PerMonthAllVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Child Category", CurrentMonthStartDateAmt, EndDateAmt);
         //-------------4: Selected Customer, All Item, ErrorCode(SCAPMAMT)-------------
-        PerMonthSelVendorAllItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
+        //PerMonthSelVendorAllItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
         //-------------5: Selected Customer, Selected Item, ErrorCode(SCSIPMAMT)-------------
-        PerMonthSelVendorSelItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
+        //PerMonthSelVendorSelItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
         //-------------6: Selected Customer, Selected Item Category, ErrorCode(SCSICPMAMT)-------
-        PerMonthSelVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
+        PerMonthSelVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Child Category", CurrentMonthStartDateAmt, EndDateAmt);
         //Per Month all 6 validation--
 
     end;
@@ -182,6 +183,7 @@ codeunit 60601 "Purchase Order Restriction"
         Clear(L_RemainingQuantity);
         Clear(L_OrderQty);
         Clear(WarningtypeOpion);
+
         L_MaxOrderQty.RESET;
         L_MaxOrderQty.SETRANGE("Purchase Type", L_MaxOrderQty."Purchase Type"::Vendor);
         L_MaxOrderQty.SetRange("Purchase Code", _PurchaseLine."Buy-from Vendor No.");
@@ -192,12 +194,14 @@ codeunit 60601 "Purchase Order Restriction"
         L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
         IF L_MaxOrderQty.FINDFIRST THEN BEGIN
             WarningtypeOpion := Format(L_MaxOrderQty."Warning Type");
+
             if (L_MaxOrderQty."Start Date" <= _PurchaseHeader."Order Date") and (L_MaxOrderQty."End Date" >= _PurchaseHeader."Order Date") then begin
-                L_DayWiseQty.SetRange(Document_Type, _PurchaseLine."Document Type");//azhar
+
+                //Calculate Existing Order Amount++
+                L_DayWiseQty.SetRange(L_DayWiseQty.Document_Type, _PurchaseLine."Document Type");
                 L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', _PurchaseLine."Document No.");
                 L_DayWiseQty.SETRANGE(L_DayWiseQty.Buy_from_Vendor_No_, _PurchaseLine."Buy-from Vendor No.");
-                L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
-                //L_DayWiseQty.SETRANGE(No, _PurchaseLine."No.");
+                L_DayWiseQty.SetFilter(L_DayWiseQty.Order_Date, '%1..%2', Sdate, Edate);
                 L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
                 L_DayWiseQty.OPEN;
                 WHILE L_DayWiseQty.READ DO BEGIN
@@ -205,9 +209,21 @@ codeunit 60601 "Purchase Order Restriction"
                 END;
                 L_DayWiseQty.CLOSE;
 
+                //Calculate Current Order Quantity but if same item in Different line++
+                L_DayWiseQty.SetRange(L_DayWiseQty.Document_Type, _PurchaseLine."Document Type");
+                L_DayWiseQty.SETRANGE(L_DayWiseQty.Doc_No, _PurchaseLine."Document No.");
+                L_DayWiseQty.SetFilter(L_DayWiseQty.Line_No_, '<>%1', _PurchaseLine."Line No.");
+                L_DayWiseQty.SetFilter(L_DayWiseQty.Order_Date, '%1..%2', Sdate, Edate);
+                L_DayWiseQty.SETRANGE(L_DayWiseQty.Item_Category_Code, ItemCat);
+                L_DayWiseQty.OPEN;
+                WHILE L_DayWiseQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+                END;
+                L_DayWiseQty.CLOSE;
+
+                //Calculate Posted  Amount++
                 L_DayWiseReceivedQty.SETRANGE(L_DayWiseReceivedQty.Buy_from_Vendor_No_, _PurchaseLine."Buy-from Vendor No.");
                 L_DayWiseReceivedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
-                //L_DayWiseReceivedQty.SETRANGE(No, _PurchaseLine."No.");
                 L_DayWiseReceivedQty.SetRange(L_DayWiseReceivedQty.Item_Category_Code, ItemCat);
                 L_DayWiseReceivedQty.OPEN;
                 WHILE L_DayWiseReceivedQty.READ DO BEGIN
@@ -215,23 +231,10 @@ codeunit 60601 "Purchase Order Restriction"
                 END;
                 L_DayWiseReceivedQty.CLOSE;
 
-                // Added additonal code for checking the quantity for the particular Order ++
-                RecPurchaseLineNew.RESET;
-                RecPurchaseLineNew.SETRANGE(RecPurchaseLineNew."Document Type", RecPurchaseLineNew."Document Type"::Order);
-                RecPurchaseLineNew.SETRANGE(RecPurchaseLineNew."Document No.", _PurchaseLine."Document No.");
-                //RecPurchaseLineNew.SETRANGE(RecPurchaseLineNew."No.", _PurchaseLine."No.");
-                _PurchaseLine.SetRange("Item Category Code", ItemCat);
-                IF RecPurchaseLineNew.FINDSET THEN BEGIN
-                    REPEAT
-                        IF RecPurchaseLineNew."Line No." = _PurchaseLine."Line No." THEN
-                            L_OrderQty := L_OrderQty + _PurchaseLine."Line Amount"
-                        ELSE
-                            L_OrderQty := L_OrderQty + RecPurchaseLineNew."Line Amount";
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := _PurchaseLine."Line Amount";
 
-                    UNTIL RecPurchaseLineNew.NEXT = 0;
-                END
-                ELSE
-                    L_OrderQty := _PurchaseLine."Line Amount";
+
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
                 CheckingRemainingAmt(L_RemainingQuantity, 'SCSICPMAMT', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Restriction Type");
             end;
@@ -373,7 +376,7 @@ codeunit 60601 "Purchase Order Restriction"
     end;
 
 
-    procedure PerMonthAllCustomerSelItemCatAmt(_PurchaseLine: Record "Purchase Line"; _PurchaseHeader: Record "Purchase Header"; ItemCat: code[20]; Sdate: date; Edate: Date)
+    procedure PerMonthAllVendorSelItemCatAmt(_PurchaseLine: Record "Purchase Line"; _PurchaseHeader: Record "Purchase Header"; ItemCat: code[20]; Sdate: date; Edate: Date)
     var
         L_MaxOrderQty: Record 60602;
         L_DayOrderQty: Decimal;
@@ -387,6 +390,7 @@ codeunit 60601 "Purchase Order Restriction"
         Clear(L_RemainingQuantity);
         Clear(L_OrderQty);
         Clear(WarningtypeOpion);
+
         L_MaxOrderQty.RESET;
         L_MaxOrderQty.SETRANGE("Purchase Type", L_MaxOrderQty."Purchase Type"::"All Vendor");
         L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
@@ -396,12 +400,14 @@ codeunit 60601 "Purchase Order Restriction"
         L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
         IF L_MaxOrderQty.FINDFIRST THEN BEGIN
             WarningtypeOpion := Format(L_MaxOrderQty."Warning Type");
+
             if (L_MaxOrderQty."Start Date" <= _PurchaseHeader."Order Date") and (L_MaxOrderQty."End Date" >= _PurchaseHeader."Order Date") then begin
-                L_DayWiseQty.SetRange(Document_Type, _PurchaseLine."Document Type");//azhar
+
+                //Calculate Existing Order Amount++
+                L_DayWiseQty.SetRange(L_DayWiseQty.Document_Type, _PurchaseLine."Document Type");
                 L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', _PurchaseLine."Document No.");
                 L_DayWiseQty.SETRANGE(L_DayWiseQty.Buy_from_Vendor_No_, _PurchaseLine."Buy-from Vendor No.");
-                L_DayWiseQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
-                //L_DayWiseQty.SETRANGE(No, _PurchaseLine."No.");
+                L_DayWiseQty.SetFilter(L_DayWiseQty.Order_Date, '%1..%2', Sdate, Edate);
                 L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
                 L_DayWiseQty.OPEN;
                 WHILE L_DayWiseQty.READ DO BEGIN
@@ -409,9 +415,21 @@ codeunit 60601 "Purchase Order Restriction"
                 END;
                 L_DayWiseQty.CLOSE;
 
+                //Calculate Current Order Quantity but if same item in Different line++
+                L_DayWiseQty.SetRange(L_DayWiseQty.Document_Type, _PurchaseLine."Document Type");
+                L_DayWiseQty.SETRANGE(L_DayWiseQty.Doc_No, _PurchaseLine."Document No.");
+                L_DayWiseQty.SetFilter(L_DayWiseQty.Line_No_, '<>%1', _PurchaseLine."Line No.");
+                L_DayWiseQty.SetFilter(L_DayWiseQty.Order_Date, '%1..%2', Sdate, Edate);
+                L_DayWiseQty.SETRANGE(L_DayWiseQty.Item_Category_Code, ItemCat);
+                L_DayWiseQty.OPEN;
+                WHILE L_DayWiseQty.READ DO BEGIN
+                    L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+                END;
+                L_DayWiseQty.CLOSE;
+
+                //Calculate Posted  Amount++
                 L_DayWiseReceivedQty.SETRANGE(L_DayWiseReceivedQty.Buy_from_Vendor_No_, _PurchaseLine."Buy-from Vendor No.");
                 L_DayWiseReceivedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
-                //L_DayWiseReceivedQty.SETRANGE(No, _PurchaseLine."No.");
                 L_DayWiseReceivedQty.SetRange(L_DayWiseReceivedQty.Item_Category_Code, ItemCat);
                 L_DayWiseReceivedQty.OPEN;
                 WHILE L_DayWiseReceivedQty.READ DO BEGIN
@@ -419,23 +437,9 @@ codeunit 60601 "Purchase Order Restriction"
                 END;
                 L_DayWiseReceivedQty.CLOSE;
 
-                // Added additonal code for checking the quantity for the particular Order ++
-                RecPurchaseLineNew.RESET;
-                RecPurchaseLineNew.SETRANGE(RecPurchaseLineNew."Document Type", RecPurchaseLineNew."Document Type"::Order);
-                RecPurchaseLineNew.SETRANGE(RecPurchaseLineNew."Document No.", _PurchaseLine."Document No.");
-                //RecPurchaseLineNew.SETRANGE(RecPurchaseLineNew."No.", _PurchaseLine."No.");
-                _PurchaseLine.SetRange("Item Category Code", ItemCat);
-                IF RecPurchaseLineNew.FINDSET THEN BEGIN
-                    REPEAT
-                        IF RecPurchaseLineNew."Line No." = _PurchaseLine."Line No." THEN
-                            L_OrderQty := L_OrderQty + _PurchaseLine."Line Amount"
-                        ELSE
-                            L_OrderQty := L_OrderQty + RecPurchaseLineNew."Line Amount";
+                //L_OrderQty := RecSalesLine.Quantity;
+                L_OrderQty := _PurchaseLine."Line Amount";
 
-                    UNTIL RecPurchaseLineNew.NEXT = 0;
-                END
-                ELSE
-                    L_OrderQty := _PurchaseLine."Line Amount";
                 L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
                 CheckingRemainingAmt(L_RemainingQuantity, 'ASICPMAMT', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Restriction Type");
             end;
@@ -589,6 +593,7 @@ codeunit 60601 "Purchase Order Restriction"
         Clear(L_RemainingQuantity);
         Clear(L_OrderQty);
         Clear(WarningtypeOpion);
+
         L_MaxOrderQty.RESET;
         L_MaxOrderQty.SETRANGE("Purchase Type", L_MaxOrderQty."Purchase Type"::Vendor);
         L_MaxOrderQty.SetRange("Purchase Code", _PurchaseLine."Buy-from Vendor No.");
@@ -599,11 +604,12 @@ codeunit 60601 "Purchase Order Restriction"
         L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
         IF L_MaxOrderQty.FINDFIRST THEN BEGIN
             WarningtypeOpion := Format(L_MaxOrderQty."Warning Type");
-            L_DayWiseQty.SetRange(Document_Type, _PurchaseLine."Document Type");//azhar
+
+            //Calculate Existing Order Quantity++
+            L_DayWiseQty.SetRange(L_DayWiseQty.Document_Type, _PurchaseLine."Document Type");
             L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', _PurchaseLine."Document No.");
             L_DayWiseQty.SETRANGE(L_DayWiseQty.Buy_from_Vendor_No_, _PurchaseLine."Buy-from Vendor No.");
-            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
-            //L_DayWiseQty.SETRANGE(No, _PurchaseLine."No.");
+            L_DayWiseQty.SETRANGE(L_DayWiseQty.Order_Date, _PurchaseHeader."Order Date");
             L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
             L_DayWiseQty.OPEN;
             WHILE L_DayWiseQty.READ DO BEGIN
@@ -611,9 +617,22 @@ codeunit 60601 "Purchase Order Restriction"
             END;
             L_DayWiseQty.CLOSE;
 
+            //Calculate Current Order Amount but if same item in Different line++
+            L_DayWiseQty.SetRange(L_DayWiseQty.Document_Type, _PurchaseLine."Document Type");
+            L_DayWiseQty.SetRange(L_DayWiseQty.Doc_No, _PurchaseLine."Document No.");
+            L_DayWiseQty.SetFilter(L_DayWiseQty.Line_No_, '<>%1', _PurchaseLine."Line No.");
+            L_DayWiseQty.SETRANGE(L_DayWiseQty.Buy_from_Vendor_No_, _PurchaseLine."Buy-from Vendor No.");
+            L_DayWiseQty.SETRANGE(L_DayWiseQty.Order_Date, _PurchaseHeader."Order Date");
+            L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+            END;
+            L_DayWiseQty.CLOSE;
+
+            //Calculate Posted Amount++
             L_DayWiseReceivedQty.SETRANGE(L_DayWiseReceivedQty.Buy_from_Vendor_No_, _PurchaseLine."Buy-from Vendor No.");
-            L_DayWiseReceivedQty.SETRANGE(Order_Date, WORKDATE);
-            //L_DayWiseReceivedQty.SETRANGE(No, _PurchaseLine."No.");
+            L_DayWiseReceivedQty.SETRANGE(L_DayWiseReceivedQty.Order_Date, _PurchaseHeader."Order Date");
             L_DayWiseReceivedQty.SetRange(L_DayWiseReceivedQty.Item_Category_Code, ItemCat);
             L_DayWiseReceivedQty.OPEN;
             WHILE L_DayWiseReceivedQty.READ DO BEGIN
@@ -621,23 +640,9 @@ codeunit 60601 "Purchase Order Restriction"
             END;
             L_DayWiseReceivedQty.CLOSE;
 
-            // Added additonal code for checking the quantity for the particular Order ++
-            RecPurchaseLineNew.RESET;
-            RecPurchaseLineNew.SETRANGE(RecPurchaseLineNew."Document Type", RecPurchaseLineNew."Document Type"::Order);
-            RecPurchaseLineNew.SETRANGE(RecPurchaseLineNew."Document No.", _PurchaseLine."Document No.");
-            //RecPurchaseLineNew.SETRANGE(RecPurchaseLineNew."No.", _PurchaseLine."No.");
-            _PurchaseLine.SetRange("Item Category Code", ItemCat);
-            IF RecPurchaseLineNew.FINDSET THEN BEGIN
-                REPEAT
-                    IF RecPurchaseLineNew."Line No." = _PurchaseLine."Line No." THEN
-                        L_OrderQty := L_OrderQty + _PurchaseLine."Line Amount"
-                    ELSE
-                        L_OrderQty := L_OrderQty + RecPurchaseLineNew."Line Amount";
+            //Current Amount++
+            L_OrderQty := _PurchaseLine."Line Amount";
 
-                UNTIL RecPurchaseLineNew.NEXT = 0;
-            END
-            ELSE
-                L_OrderQty := _PurchaseLine."Line Amount";
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
             CheckingRemainingAmt(L_RemainingQuantity, 'SCSICPDAMT', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Restriction Type");
         end;
@@ -787,6 +792,7 @@ codeunit 60601 "Purchase Order Restriction"
         Clear(L_RemainingQuantity);
         Clear(L_OrderQty);
         Clear(WarningtypeOpion);
+
         L_MaxOrderQty.RESET;
         L_MaxOrderQty.SETRANGE("Purchase Type", L_MaxOrderQty."Purchase Type"::"All Vendor");
         L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
@@ -796,11 +802,12 @@ codeunit 60601 "Purchase Order Restriction"
         L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
         IF L_MaxOrderQty.FINDFIRST THEN BEGIN
             WarningtypeOpion := Format(L_MaxOrderQty."Warning Type");
-            L_DayWiseQty.SetRange(Document_Type, _PurchaseLine."Document Type");//azhar
+
+            //Calculate Existing Order Quantity++
+            L_DayWiseQty.SetRange(L_DayWiseQty.Document_Type, _PurchaseLine."Document Type");
             L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', _PurchaseLine."Document No.");
             L_DayWiseQty.SETRANGE(L_DayWiseQty.Buy_from_Vendor_No_, _PurchaseLine."Buy-from Vendor No.");
-            L_DayWiseQty.SETRANGE(Order_Date, WORKDATE);
-            //L_DayWiseQty.SETRANGE(No, _PurchaseLine."No.");
+            L_DayWiseQty.SETRANGE(L_DayWiseQty.Order_Date, _PurchaseHeader."Order Date");
             L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
             L_DayWiseQty.OPEN;
             WHILE L_DayWiseQty.READ DO BEGIN
@@ -808,9 +815,23 @@ codeunit 60601 "Purchase Order Restriction"
             END;
             L_DayWiseQty.CLOSE;
 
+            //Calculate Current Order Quantity but if same item in Different line++
+            L_DayWiseQty.SetRange(L_DayWiseQty.Document_Type, _PurchaseLine."Document Type");
+            L_DayWiseQty.SetRange(L_DayWiseQty.Doc_No, _PurchaseLine."Document No.");
+            L_DayWiseQty.SetFilter(L_DayWiseQty.Line_No_, '<>%1', _PurchaseLine."Line No.");
+            L_DayWiseQty.SETRANGE(L_DayWiseQty.Buy_from_Vendor_No_, _PurchaseLine."Buy-from Vendor No.");
+            L_DayWiseQty.SETRANGE(L_DayWiseQty.Order_Date, _PurchaseHeader."Order Date");
+            L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
+            L_DayWiseQty.OPEN;
+            WHILE L_DayWiseQty.READ DO BEGIN
+                L_DayOrderQty += L_DayWiseQty.Sum_Amt;
+            END;
+            L_DayWiseQty.CLOSE;
+
+
+            //Calculate Posted Amount++
             L_DayWiseReceivedQty.SETRANGE(L_DayWiseReceivedQty.Buy_from_Vendor_No_, _PurchaseLine."Buy-from Vendor No.");
-            L_DayWiseReceivedQty.SETRANGE(Order_Date, WORKDATE);
-            //L_DayWiseReceivedQty.SETRANGE(No, _PurchaseLine."No.");
+            L_DayWiseReceivedQty.SETRANGE(L_DayWiseReceivedQty.Order_Date, _PurchaseHeader."Order Date");
             L_DayWiseReceivedQty.SetRange(L_DayWiseReceivedQty.Item_Category_Code, ItemCat);
             L_DayWiseReceivedQty.OPEN;
             WHILE L_DayWiseReceivedQty.READ DO BEGIN
@@ -818,23 +839,9 @@ codeunit 60601 "Purchase Order Restriction"
             END;
             L_DayWiseReceivedQty.CLOSE;
 
-            // Added additonal code for checking the quantity for the particular Order ++
-            RecPurchaseLineNew.RESET;
-            RecPurchaseLineNew.SETRANGE(RecPurchaseLineNew."Document Type", RecPurchaseLineNew."Document Type"::Order);
-            RecPurchaseLineNew.SETRANGE(RecPurchaseLineNew."Document No.", _PurchaseLine."Document No.");
-            //RecPurchaseLineNew.SETRANGE(RecPurchaseLineNew."No.", _PurchaseLine."No.");
-            _PurchaseLine.SetRange("Item Category Code", ItemCat);
-            IF RecPurchaseLineNew.FINDSET THEN BEGIN
-                REPEAT
-                    IF RecPurchaseLineNew."Line No." = _PurchaseLine."Line No." THEN
-                        L_OrderQty := L_OrderQty + _PurchaseLine."Line Amount"
-                    ELSE
-                        L_OrderQty := L_OrderQty + RecPurchaseLineNew."Line Amount";
+            //Current Amount++
+            L_OrderQty := _PurchaseLine."Line Amount";
 
-                UNTIL RecPurchaseLineNew.NEXT = 0;
-            END
-            ELSE
-                L_OrderQty := _PurchaseLine."Line Amount";
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
             CheckingRemainingAmt(L_RemainingQuantity, 'ASICPDAMT', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Restriction Type");
         end;
@@ -1064,6 +1071,7 @@ codeunit 60601 "Purchase Order Restriction"
         Clear(L_RemainingQuantity);
         Clear(L_OrderQty);
         Clear(WarningtypeOpion);
+
         L_MaxOrderQty.RESET;
         L_MaxOrderQty.SETRANGE("Purchase Type", L_MaxOrderQty."Purchase Type"::"All Vendor");
         L_MaxOrderQty.SetRange("Item Type", L_MaxOrderQty."Item Type"::"Item Category");
@@ -1073,26 +1081,21 @@ codeunit 60601 "Purchase Order Restriction"
         L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
         IF L_MaxOrderQty.FINDFIRST THEN BEGIN
             WarningtypeOpion := Format(L_MaxOrderQty."Warning Type");
+
+            //Same Order but Different line++
             RecPurchaseLineNew.RESET;
             RecPurchaseLineNew.SETRANGE("Document Type", _PurchaseLine."Document Type");
             RecPurchaseLineNew.SETRANGE("Document No.", _PurchaseLine."Document No.");
             RecPurchaseLineNew.SetRange(Type, RecPurchaseLineNew.Type::Item);
-            //RecPurchaseLineNew.SETRANGE("No.", _PurchaseLine."No.");
+            RecPurchaseLineNew.SetRange("Child Category", ItemCat);
+            RecPurchaseLineNew.SetFilter("Line No.", '<>%1', _PurchaseLine."Line No.");
             IF RecPurchaseLineNew.FINDSET THEN BEGIN
-                REPEAT
-                    RecItem.Reset();
-                    RecItem.SetRange("No.", RecPurchaseLineNew."No.");
-                    RecItem.SetRange("Item Category Code", ItemCat);
-                    if RecItem.FindFirst() then begin
-                        IF RecPurchaseLineNew."Line No." = _PurchaseLine."Line No." THEN
-                            L_DayOrderQty := L_DayOrderQty + _PurchaseLine."Line Amount"
-                        ELSE
-                            L_DayOrderQty := L_DayOrderQty + RecPurchaseLineNew."Line Amount";
-                    end;
-                UNTIL RecPurchaseLineNew.NEXT = 0;
-            END
-            ELSE
-                L_OrderQty := _PurchaseLine."Line Amount";
+                RecPurchaseLineNew.CalcSums("Line Amount");
+                L_DayOrderQty := RecPurchaseLineNew."Line Amount";
+            END;
+
+            //Current Line++
+            L_OrderQty := _PurchaseLine."Line Amount";
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
             CheckingRemainingAmt(L_RemainingQuantity, 'ASICPOAMT', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Restriction Type");
@@ -1197,6 +1200,7 @@ codeunit 60601 "Purchase Order Restriction"
         Clear(L_RemainingQuantity);
         Clear(L_OrderQty);
         Clear(WarningtypeOpion);
+
         L_MaxOrderQty.RESET;
         L_MaxOrderQty.SETRANGE("Purchase Type", L_MaxOrderQty."Purchase Type"::Vendor);
         L_MaxOrderQty.SetRange("Purchase Code", _PurchaseLine."Buy-from Vendor No.");
@@ -1207,26 +1211,21 @@ codeunit 60601 "Purchase Order Restriction"
         L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
         IF L_MaxOrderQty.FINDFIRST THEN BEGIN
             WarningtypeOpion := Format(L_MaxOrderQty."Warning Type");
+
+            //Same Order but Different line++
             RecPurchaseLineNew.RESET;
             RecPurchaseLineNew.SETRANGE("Document Type", _PurchaseLine."Document Type");
             RecPurchaseLineNew.SETRANGE("Document No.", _PurchaseLine."Document No.");
             RecPurchaseLineNew.SetRange(Type, RecPurchaseLineNew.Type::Item);
-            //RecPurchaseLineNew.SETRANGE("No.", _PurchaseLine."No.");
+            RecPurchaseLineNew.SetRange("Child Category", ItemCat);
+            RecPurchaseLineNew.SetFilter("Line No.", '<>%1', _PurchaseLine."Line No.");
             IF RecPurchaseLineNew.FINDSET THEN BEGIN
-                REPEAT
-                    RecItem.Reset();
-                    RecItem.SetRange("No.", RecPurchaseLineNew."No.");
-                    RecItem.SetRange("Item Category Code", ItemCat);
-                    if RecItem.FindFirst() then begin
-                        IF RecPurchaseLineNew."Line No." = _PurchaseLine."Line No." THEN
-                            L_DayOrderQty := L_DayOrderQty + _PurchaseLine."Line Amount"
-                        ELSE
-                            L_DayOrderQty := L_DayOrderQty + RecPurchaseLineNew."Line Amount";
-                    end;
-                UNTIL RecPurchaseLineNew.NEXT = 0;
-            END
-            ELSE
-                L_OrderQty := _PurchaseLine.Quantity;
+                RecPurchaseLineNew.CalcSums("Line Amount");
+                L_DayOrderQty := RecPurchaseLineNew."Line Amount";
+            END;
+
+            //Current Line++
+            L_OrderQty := _PurchaseLine."Line Amount";
 
             L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
             CheckingRemainingAmt(L_RemainingQuantity, 'SCSICPOAMT', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Restriction Type");

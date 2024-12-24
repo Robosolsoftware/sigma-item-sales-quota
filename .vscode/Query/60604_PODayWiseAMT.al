@@ -29,7 +29,7 @@ query 60604 "PO Daywise order Amt"
                 {
 
                 }
-                column(Item_Category_Code; "Item Category Code")
+                column(Item_Category_Code; "Child Category")
                 {
 
                 }

@@ -18,8 +18,8 @@ table 60602 "Purchase Quota"
         }
         field(11; "Restriction Type"; Option)
         {
-            OptionCaption = 'By Quantity,By Amount';
-            OptionMembers = "By Quantity","By Amount";
+            OptionCaption = ' ,By Quantity,By Amount';
+            OptionMembers = " ","By Quantity","By Amount";
         }
         field(8; "Purchase Code"; Code[20])
         {
@@ -51,8 +51,8 @@ table 60602 "Purchase Quota"
         }
         field(12; "Item Type"; Option)
         {
-            OptionCaption = 'All Items,Item,Item Category';
-            OptionMembers = "All Items","Item","Item Category";
+            OptionCaption = ' ,All Items,Item,Item Category';
+            OptionMembers = " ","All Items","Item","Item Category";
             trigger OnValidate()
             var
             begin
@@ -67,7 +67,7 @@ table 60602 "Purchase Quota"
         field(3; "Item Code"; Code[20])
         {
             TableRelation = if ("Item Type" = const(Item)) Item else
-            if ("Item Type" = const("Item Category")) "Item Category";
+            if ("Item Type" = const("Item Category")) "Item Category" where(Indentation = const(2));
             ValidateTableRelation = true;
 
             trigger OnValidate()
@@ -127,8 +127,8 @@ table 60602 "Purchase Quota"
         }
         field(6; "Quantity Restriction"; Option)
         {
-            OptionCaption = 'Per Day,Per Order,Per Month';
-            OptionMembers = "Per Day","Per Order","Per Month";
+            OptionCaption = ' ,Per Day,Per Order,Per Month';
+            OptionMembers = " ","Per Day","Per Order","Per Month";
 
         }
         field(9; "Start Date"; Date)

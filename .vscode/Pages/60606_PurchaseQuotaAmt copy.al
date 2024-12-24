@@ -140,40 +140,27 @@ page 60606 "Purchase Quota By Amount"
             repeater(DataAll)
             {
                 ShowCaption = false;
-                field("Restriction Type"; Rec."Restriction Type")
-                {
-                    ApplicationArea = all;
-                    Visible = false;
-                }
                 field("Purchase Type"; Rec."Purchase Type")
                 {
                     ApplicationArea = all;
-                }
-                field("Purchase Code"; Rec."Purchase Code")
-                {
-                    ApplicationArea = all;
-                }
-                field("Purchase Name"; Rec."Purchase Name")
-                {
-                    ApplicationArea = all;
+
+                    trigger OnValidate()
+                    begin
+                        if Rec."Purchase Type" <> Rec."Purchase Type"::"All Vendor" then
+                            Error('Quota by Amount only work for All Vendor');
+                    end;
                 }
                 field("Item Type"; Rec."Item Type")
                 {
                     ApplicationArea = all;
+
+                    trigger OnValidate()
+                    begin
+                        if Rec."Item Type" <> Rec."Item Type"::"Item Category" then
+                            Error('Quota by Amount only work for Item Category');
+                    end;
                 }
                 field("Item Code"; Rec."Item Code")
-                {
-                    ApplicationArea = all;
-                }
-                field("Warehouse Class code"; rec."Warehouse Class code")
-                {
-                    ApplicationArea = all;
-                }
-                field("Item Description"; Rec."Item Description")
-                {
-                    ApplicationArea = all;
-                }
-                field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
                     ApplicationArea = all;
                 }
@@ -189,6 +176,9 @@ page 60606 "Purchase Quota By Amount"
                     trigger OnValidate();
                     var
                     begin
+                        if Rec."Quantity Restriction" <> Rec."Quantity Restriction"::"Per Month" then
+                            Error('Quota by Amount only work for Per Month');
+
                         if Rec."Quantity Restriction" = Rec."Quantity Restriction"::"Per Month" then begin
                             NoOfMonthEdit := true;
                         end else begin
@@ -207,7 +197,6 @@ page 60606 "Purchase Quota By Amount"
                 field("Start Date"; Rec."Start Date")
                 {
                     ApplicationArea = all;
-                    //Editable = false;CAS-28103-W6D1M0
                 }
                 field("End Date"; Rec."End Date")
                 {
@@ -292,7 +281,7 @@ page 60606 "Purchase Quota By Amount"
         myInt: Integer;
 
         PurchaseTypeFilter: Option " ","All Vendor",Vendor;
-        ItemTypeFilter: Option "All Items","Item","Item Category";
+        ItemTypeFilter: Option " ","All Items","Item","Item Category";
         PurchaseCodeFilter: Text;
         ItemCodeFilter: Text;
         StartingDateFilter: Text[30];

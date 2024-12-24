@@ -18,7 +18,7 @@ query 60605 "PO DayReceived Amt"
                 column(No; "No.")
                 {
                 }
-                column(Item_Category_Code; "Item Category Code")
+                column(Item_Category_Code; "Child Category")
                 {
 
                 }
