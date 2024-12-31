@@ -172,16 +172,15 @@ codeunit 60601 "Purchase Order Restriction"
     procedure PerMonthSelVendorSelItemCatAmt(_PurchaseLine: Record "Purchase Line"; _PurchaseHeader: Record "Purchase Header"; ItemCat: code[20]; Sdate: date; Edate: Date)
     var
         L_MaxOrderQty: Record 60602;
-        L_DayOrderQty: Decimal;
+        L_DayOrderAmount: Decimal;
         L_RemainingQuantity: Decimal;
-        RecPurchaseLineNew: Record "Purchase Line";
-        L_OrderQty: Decimal;
-        L_DayWiseQty: Query 60604;
-        L_DayWiseReceivedQty: Query 60605;
+        PurchaseLine: Record "Purchase Line";
+        PurchInvLine: Record "Purch. Inv. Line";
+        L_OrderAmount: Decimal;
     begin
-        Clear(L_DayOrderQty);
+        Clear(L_DayOrderAmount);
         Clear(L_RemainingQuantity);
-        Clear(L_OrderQty);
+        Clear(L_OrderAmount);
         Clear(WarningtypeOpion);
 
         L_MaxOrderQty.RESET;
@@ -198,45 +197,52 @@ codeunit 60601 "Purchase Order Restriction"
             if (L_MaxOrderQty."Start Date" <= _PurchaseHeader."Order Date") and (L_MaxOrderQty."End Date" >= _PurchaseHeader."Order Date") then begin
 
                 //Calculate Existing Order Amount++
-                L_DayWiseQty.SetRange(L_DayWiseQty.Document_Type, _PurchaseLine."Document Type");
-                L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', _PurchaseLine."Document No.");
-                L_DayWiseQty.SETRANGE(L_DayWiseQty.Buy_from_Vendor_No_, _PurchaseLine."Buy-from Vendor No.");
-                L_DayWiseQty.SetFilter(L_DayWiseQty.Order_Date, '%1..%2', Sdate, Edate);
-                L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
-                L_DayWiseQty.OPEN;
-                WHILE L_DayWiseQty.READ DO BEGIN
-                    L_DayOrderQty += L_DayWiseQty.Sum_Amt;
-                END;
-                L_DayWiseQty.CLOSE;
+                PurchaseLine.Reset();
+                PurchaseLine.SetRange("Document Type", _PurchaseLine."Document Type");
+                PurchaseLine.SetFilter("Document No.", '<>%1', _PurchaseLine."Document No.");
+                PurchaseLine.SetRange("Buy-from Vendor No.", _PurchaseHeader."Buy-from Vendor No.");
+                PurchaseLine.SetRange("Child Category", ItemCat);
+                PurchaseLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+                if PurchaseLine.FindSet() then begin
+                    PurchaseLine.CalcSums("Outstanding Amount");
+                    L_DayOrderAmount := PurchaseLine."Outstanding Amount";
+                end;
 
-                //Calculate Current Order Quantity but if same item in Different line++
-                L_DayWiseQty.SetRange(L_DayWiseQty.Document_Type, _PurchaseLine."Document Type");
-                L_DayWiseQty.SETRANGE(L_DayWiseQty.Doc_No, _PurchaseLine."Document No.");
-                L_DayWiseQty.SetFilter(L_DayWiseQty.Line_No_, '<>%1', _PurchaseLine."Line No.");
-                L_DayWiseQty.SetFilter(L_DayWiseQty.Order_Date, '%1..%2', Sdate, Edate);
-                L_DayWiseQty.SETRANGE(L_DayWiseQty.Item_Category_Code, ItemCat);
-                L_DayWiseQty.OPEN;
-                WHILE L_DayWiseQty.READ DO BEGIN
-                    L_DayOrderQty += L_DayWiseQty.Sum_Amt;
-                END;
-                L_DayWiseQty.CLOSE;
+                //Calculate Same Order Amount but if same item in Different line++
+                PurchaseLine.Reset();
+                PurchaseLine.SetRange("Document Type", _PurchaseLine."Document Type");
+                PurchaseLine.SetRange("Document No.", _PurchaseLine."Document No.");
+                PurchaseLine.SetFilter("Line No.", '<>%1', _PurchaseLine."Line No.");
+                PurchaseLine.SetRange("Buy-from Vendor No.", _PurchaseHeader."Buy-from Vendor No.");
+                PurchaseLine.SetRange("Child Category", ItemCat);
+                PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+                PurchaseLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                if PurchaseLine.FindSet() then begin
+                    PurchaseLine.CalcSums("Outstanding Amount");
+                    L_DayOrderAmount := PurchaseLine."Outstanding Amount";
+                end;
 
-                //Calculate Posted  Amount++
-                L_DayWiseReceivedQty.SETRANGE(L_DayWiseReceivedQty.Buy_from_Vendor_No_, _PurchaseLine."Buy-from Vendor No.");
-                L_DayWiseReceivedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
-                L_DayWiseReceivedQty.SetRange(L_DayWiseReceivedQty.Item_Category_Code, ItemCat);
-                L_DayWiseReceivedQty.OPEN;
-                WHILE L_DayWiseReceivedQty.READ DO BEGIN
-                    L_DayOrderQty += L_DayWiseReceivedQty.Sum_Amt;
-                END;
-                L_DayWiseReceivedQty.CLOSE;
+                //Calculate Posted  Document Amount++
+                PurchInvLine.Reset();
+                PurchInvLine.SetRange(Type, PurchInvLine.Type::Item);
+                PurchInvLine.SetRange("Child Category", ItemCat);
+                PurchInvLine.SetRange("Buy-from Vendor No.", _PurchaseLine."Buy-from Vendor No.");
+                PurchInvLine.CalcFields("Order Date");
+                PurchInvLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                if PurchInvLine.FindSet() then begin
+                    PurchInvLine.CalcSums(Amount);
+                    L_DayOrderAmount := PurchInvLine.Amount;
+                end;
 
-                //L_OrderQty := RecSalesLine.Quantity;
-                L_OrderQty := _PurchaseLine."Line Amount";
+                //Current Line Amount
+                L_OrderAmount := _PurchaseLine."Outstanding Amount";
 
+                L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_OrderAmount + L_DayOrderAmount);
+                if L_RemainingQuantity <= 0 then
+                    L_RemainingQuantity := 0;
 
-                L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-                CheckingRemainingAmt(L_RemainingQuantity, 'SCSICPMAMT', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Restriction Type");
+                CheckRemainingAmt(L_RemainingQuantity, 'ASICPMAMT', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Restriction Type", L_OrderAmount);
             end;
         end;
     end;
@@ -379,16 +385,15 @@ codeunit 60601 "Purchase Order Restriction"
     procedure PerMonthAllVendorSelItemCatAmt(_PurchaseLine: Record "Purchase Line"; _PurchaseHeader: Record "Purchase Header"; ItemCat: code[20]; Sdate: date; Edate: Date)
     var
         L_MaxOrderQty: Record 60602;
-        L_DayOrderQty: Decimal;
+        L_DayOrderAmount: Decimal;
         L_RemainingQuantity: Decimal;
-        RecPurchaseLineNew: Record "Purchase Line";
-        L_OrderQty: Decimal;
-        L_DayWiseQty: Query 60604;
-        L_DayWiseReceivedQty: Query 60605;
+        PurchaseLine: Record "Purchase Line";
+        PurchInvLine: Record "Purch. Inv. Line";
+        L_OrderAmount: Decimal;
     begin
-        Clear(L_DayOrderQty);
+        Clear(L_DayOrderAmount);
         Clear(L_RemainingQuantity);
-        Clear(L_OrderQty);
+        Clear(L_OrderAmount);
         Clear(WarningtypeOpion);
 
         L_MaxOrderQty.RESET;
@@ -404,44 +409,52 @@ codeunit 60601 "Purchase Order Restriction"
             if (L_MaxOrderQty."Start Date" <= _PurchaseHeader."Order Date") and (L_MaxOrderQty."End Date" >= _PurchaseHeader."Order Date") then begin
 
                 //Calculate Existing Order Amount++
-                L_DayWiseQty.SetRange(L_DayWiseQty.Document_Type, _PurchaseLine."Document Type");
-                L_DayWiseQty.SETFILTER(L_DayWiseQty.Doc_No, '<>%1', _PurchaseLine."Document No.");
-                L_DayWiseQty.SETRANGE(L_DayWiseQty.Buy_from_Vendor_No_, _PurchaseLine."Buy-from Vendor No.");
-                L_DayWiseQty.SetFilter(L_DayWiseQty.Order_Date, '%1..%2', Sdate, Edate);
-                L_DayWiseQty.SetRange(L_DayWiseQty.Item_Category_Code, ItemCat);
-                L_DayWiseQty.OPEN;
-                WHILE L_DayWiseQty.READ DO BEGIN
-                    L_DayOrderQty += L_DayWiseQty.Sum_Amt;
-                END;
-                L_DayWiseQty.CLOSE;
+                PurchaseLine.Reset();
+                PurchaseLine.SetRange("Document Type", _PurchaseLine."Document Type");
+                PurchaseLine.SetFilter("Document No.", '<>%1', _PurchaseLine."Document No.");
+                PurchaseLine.SetRange("Buy-from Vendor No.", _PurchaseHeader."Buy-from Vendor No.");
+                PurchaseLine.SetRange("Child Category", ItemCat);
+                PurchaseLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+                if PurchaseLine.FindSet() then begin
+                    PurchaseLine.CalcSums("Outstanding Amount");
+                    L_DayOrderAmount := PurchaseLine."Outstanding Amount";
+                end;
 
-                //Calculate Current Order Quantity but if same item in Different line++
-                L_DayWiseQty.SetRange(L_DayWiseQty.Document_Type, _PurchaseLine."Document Type");
-                L_DayWiseQty.SETRANGE(L_DayWiseQty.Doc_No, _PurchaseLine."Document No.");
-                L_DayWiseQty.SetFilter(L_DayWiseQty.Line_No_, '<>%1', _PurchaseLine."Line No.");
-                L_DayWiseQty.SetFilter(L_DayWiseQty.Order_Date, '%1..%2', Sdate, Edate);
-                L_DayWiseQty.SETRANGE(L_DayWiseQty.Item_Category_Code, ItemCat);
-                L_DayWiseQty.OPEN;
-                WHILE L_DayWiseQty.READ DO BEGIN
-                    L_DayOrderQty += L_DayWiseQty.Sum_Amt;
-                END;
-                L_DayWiseQty.CLOSE;
+                //Calculate Same Order Amount but if same item in Different line++
+                PurchaseLine.Reset();
+                PurchaseLine.SetRange("Document Type", _PurchaseLine."Document Type");
+                PurchaseLine.SetRange("Document No.", _PurchaseLine."Document No.");
+                PurchaseLine.SetFilter("Line No.", '<>%1', _PurchaseLine."Line No.");
+                PurchaseLine.SetRange("Buy-from Vendor No.", _PurchaseHeader."Buy-from Vendor No.");
+                PurchaseLine.SetRange("Child Category", ItemCat);
+                PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+                PurchaseLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                if PurchaseLine.FindSet() then begin
+                    PurchaseLine.CalcSums("Outstanding Amount");
+                    L_DayOrderAmount := PurchaseLine."Outstanding Amount";
+                end;
 
-                //Calculate Posted  Amount++
-                L_DayWiseReceivedQty.SETRANGE(L_DayWiseReceivedQty.Buy_from_Vendor_No_, _PurchaseLine."Buy-from Vendor No.");
-                L_DayWiseReceivedQty.SetFilter(Order_Date, '%1..%2', Sdate, Edate);
-                L_DayWiseReceivedQty.SetRange(L_DayWiseReceivedQty.Item_Category_Code, ItemCat);
-                L_DayWiseReceivedQty.OPEN;
-                WHILE L_DayWiseReceivedQty.READ DO BEGIN
-                    L_DayOrderQty += L_DayWiseReceivedQty.Sum_Amt;
-                END;
-                L_DayWiseReceivedQty.CLOSE;
+                //Calculate Posted  Document Amount++
+                PurchInvLine.Reset();
+                PurchInvLine.SetRange(Type, PurchInvLine.Type::Item);
+                PurchInvLine.SetRange("Child Category", ItemCat);
+                PurchInvLine.SetRange("Buy-from Vendor No.", _PurchaseLine."Buy-from Vendor No.");
+                PurchInvLine.CalcFields("Order Date");
+                PurchInvLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                if PurchInvLine.FindSet() then begin
+                    PurchInvLine.CalcSums(Amount);
+                    L_DayOrderAmount := PurchInvLine.Amount;
+                end;
 
-                //L_OrderQty := RecSalesLine.Quantity;
-                L_OrderQty := _PurchaseLine."Line Amount";
+                //Current Line Amount
+                L_OrderAmount := _PurchaseLine."Outstanding Amount";
 
-                L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_DayOrderQty + L_OrderQty);
-                CheckingRemainingAmt(L_RemainingQuantity, 'ASICPMAMT', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Restriction Type");
+                L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - (L_OrderAmount + L_DayOrderAmount);
+                if L_RemainingQuantity <= 0 then
+                    L_RemainingQuantity := 0;
+
+                CheckRemainingAmt(L_RemainingQuantity, 'ASICPMAMT', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Restriction Type", L_OrderAmount);
             end;
         End;
     end;
@@ -1241,5 +1254,18 @@ codeunit 60601 "Purchase Order Restriction"
                 Error('Maximum amount %1  %2 allowed has been exceeded.', _TotalMaxQuantity, _QuantityRestriction)
             else
                 Message('Maximum amount %1  %2 allowed has been exceeded.', _TotalMaxQuantity, _QuantityRestriction);
+    end;
+
+    procedure CheckRemainingAmt(RemAmt: Decimal; Errcode: code[20]; WarningtypeOpion: Text; _TotalMaxAmount: Decimal; _QuantityRestriction: Option "Per Day","Per Order","Per Month"; _OrderAmount: Decimal)
+    var
+    begin
+        if _OrderAmount > RemAmt then begin
+            if WarningtypeOpion = 'error' then
+                Error('Remaining Amount is £%3. Maximum Amount allowed is: £%1 %2', _TotalMaxAmount, _QuantityRestriction, RemAmt)
+            else begin
+                Message('Remaining Amount is £%3. Maximum Amount allowed is: £%1 %2', _TotalMaxAmount, _QuantityRestriction, RemAmt);
+                exit;
+            end;
+        end;
     end;
 }
