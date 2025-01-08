@@ -67,7 +67,7 @@ table 60602 "Purchase Quota"
         field(3; "Item Code"; Code[20])
         {
             TableRelation = if ("Item Type" = const(Item)) Item else
-            if ("Item Type" = const("Item Category")) "Item Category" where(Indentation = const(2));
+            if ("Item Type" = const("Item Category")) "Item Category" where(Indentation = const(1));
             ValidateTableRelation = true;
 
             trigger OnValidate()

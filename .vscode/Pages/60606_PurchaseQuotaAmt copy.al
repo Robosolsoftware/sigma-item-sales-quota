@@ -5,7 +5,6 @@ page 60606 "Purchase Quota By Amount"
     DelayedInsert = true;
     PageType = List;
     SaveValues = true;
-    ObsoleteState = Pending;
     SourceTable = "Purchase Quota";
 
     layout
