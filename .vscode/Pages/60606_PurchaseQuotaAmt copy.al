@@ -23,11 +23,11 @@ page 60606 "Purchase Quota By Amount"
                         CurrPage.SaveRecord();
                         CurrPage.Update(false);
                     end;
-
                 }
                 field("Purchase Code Filter"; PurchaseCodeFilter)
                 {
                     ApplicationArea = all;
+                    Visible = false;
                     trigger OnLookup(var Text: Text): Boolean
                     var
                         CustList: Page "Customer List";
@@ -79,7 +79,6 @@ page 60606 "Purchase Quota By Amount"
                         ItemList: Page "Item List";
                         ItemCategory: Page "Item Categories";
                     begin
-
                         if ItemTypeFilter = ItemTypeFilter::"All Items" then
                             exit;
 
@@ -115,7 +114,6 @@ page 60606 "Purchase Quota By Amount"
                         CurrPage.SaveRecord();
                         CurrPage.Update(false);
                     end;
-
                 }
                 field("Starting Date Filter"; StartingDateFilter)
                 {
@@ -132,9 +130,7 @@ page 60606 "Purchase Quota By Amount"
                             Rec.SetRange("Start Date");
                         CurrPage.Update(false);
                     end;
-
                 }
-
             }
             repeater(DataAll)
             {
@@ -192,10 +188,28 @@ page 60606 "Purchase Quota By Amount"
                 {
                     ApplicationArea = all;
                     Editable = NoOfMonthEdit;
+                    trigger OnValidate()
+                    var
+                    begin
+                        if (Format(Rec."No of Months") <> '') and (Format(Rec."No of Months") <> '1M') then begin
+                            Error('No. of Months should always be 1M');
+                        end;
+                    end;
                 }
                 field("Start Date"; Rec."Start Date")
                 {
                     ApplicationArea = all;
+                    trigger OnValidate()
+                    var
+                        Day: Integer;
+                    begin
+                        Clear(Day);
+                        if Rec."Start Date" <> 0D then begin
+                            Day := Date2DMY(Rec."Start Date", 1);
+                            if Day <> 1 then
+                                Error('Start date should always be first of Month');
+                        end;
+                    end;
                 }
                 field("End Date"; Rec."End Date")
                 {
@@ -206,7 +220,6 @@ page 60606 "Purchase Quota By Amount"
                 {
                     ApplicationArea = all;
                 }
-
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = all;
@@ -214,77 +227,94 @@ page 60606 "Purchase Quota By Amount"
             }
         }
     }
-    /*
+
     actions
     {
         area(Processing)
         {
-            action(Open)
+            action("Clear Filter")
             {
-                Image = Open;
+                ApplicationArea = All;
+                Image = ClearFilter;
                 Promoted = true;
-                PromotedCategory = Process;
                 PromotedIsBig = true;
-                Visible = false;
-                trigger OnAction()
-                var
-                    RecSalesQuota: Record "Sales Quota";
-                begin
-                    RecSalesQuota.Reset();
-                    RecSalesQuota.SetRange("Sales Type", Rec."Sales Type");
-                    RecSalesQuota.SetRange("Restriction Type", Rec."Restriction Type");
-                    RecSalesQuota.SetRange("Sales Code", Rec."Sales Code");
-                    RecSalesQuota.SetRange("Item Type", Rec."Item Type");
-                    RecSalesQuota.SetRange("Item Code", Rec."Item Code");
-                    RecSalesQuota.SetRange(Status, Rec.Status);
-                    if RecSalesQuota.FindFirst() then begin
-                        RecSalesQuota.Validate(Status, RecSalesQuota.Status::Open);
-                        //RecSalesQuota.Modify();
-                        CurrPage.Update();
-                    end;
+                PromotedCategory = Process;
 
-                end;
-            }
-            action(Close)
-            {
-                Image = Close;
-                Promoted = true;
-                PromotedCategory = Process;
-                PromotedIsBig = true;
-                Visible = false;
                 trigger OnAction()
                 var
-                    RecSalesQuota: Record "Sales Quota";
                 begin
-                    RecSalesQuota.Reset();
-                    RecSalesQuota.SetRange("Sales Type", Rec."Sales Type");
-                    RecSalesQuota.SetRange("Restriction Type", Rec."Restriction Type");
-                    RecSalesQuota.SetRange("Sales Code", Rec."Sales Code");
-                    RecSalesQuota.SetRange("Item Type", Rec."Item Type");
-                    RecSalesQuota.SetRange("Item Code", Rec."Item Code");
-                    RecSalesQuota.SetRange(Status, Rec.Status);
-                    if RecSalesQuota.FindFirst() then begin
-                        RecSalesQuota.Validate(Status, RecSalesQuota.Status::Close);
-                        //RecSalesQuota.Modify();
-                        CurrPage.Update();
-                    end;
+                    PurchaseTypeFilter := PurchaseTypeFilter::" ";
+                    PurchaseCodeFilter := '';
+                    ItemTypeFilter := ItemTypeFilter::" ";
+                    ItemCodeFilter := '';
+                    StartingDateFilter := '';
+                    CurrPage.Update(false);
+                    Rec.Reset();
                 end;
             }
+            // action(Open)
+            // {
+            //     Image = Open;
+            //     Promoted = true;
+            //     PromotedCategory = Process;
+            //     PromotedIsBig = true;
+            //     Visible = false;
+            //     trigger OnAction()
+            //     var
+            //         RecSalesQuota: Record "Sales Quota";
+            //     begin
+            //         RecSalesQuota.Reset();
+            //         RecSalesQuota.SetRange("Sales Type", Rec."Sales Type");
+            //         RecSalesQuota.SetRange("Restriction Type", Rec."Restriction Type");
+            //         RecSalesQuota.SetRange("Sales Code", Rec."Sales Code");
+            //         RecSalesQuota.SetRange("Item Type", Rec."Item Type");
+            //         RecSalesQuota.SetRange("Item Code", Rec."Item Code");
+            //         RecSalesQuota.SetRange(Status, Rec.Status);
+            //         if RecSalesQuota.FindFirst() then begin
+            //             RecSalesQuota.Validate(Status, RecSalesQuota.Status::Open);
+            //             //RecSalesQuota.Modify();
+            //             CurrPage.Update();
+            //         end;
+
+            //     end;
+            // }
+            // action(Close)
+            // {
+            //     Image = Close;
+            //     Promoted = true;
+            //     PromotedCategory = Process;
+            //     PromotedIsBig = true;
+            //     Visible = false;
+            //     trigger OnAction()
+            //     var
+            //         RecSalesQuota: Record "Sales Quota";
+            //     begin
+            //         RecSalesQuota.Reset();
+            //         RecSalesQuota.SetRange("Sales Type", Rec."Sales Type");
+            //         RecSalesQuota.SetRange("Restriction Type", Rec."Restriction Type");
+            //         RecSalesQuota.SetRange("Sales Code", Rec."Sales Code");
+            //         RecSalesQuota.SetRange("Item Type", Rec."Item Type");
+            //         RecSalesQuota.SetRange("Item Code", Rec."Item Code");
+            //         RecSalesQuota.SetRange(Status, Rec.Status);
+            //         if RecSalesQuota.FindFirst() then begin
+            //             RecSalesQuota.Validate(Status, RecSalesQuota.Status::Close);
+            //             //RecSalesQuota.Modify();
+            //             CurrPage.Update();
+            //         end;
+            //     end;
+            // }
         }
     }
-    */
-
 
 
     var
-        myInt: Integer;
-
         PurchaseTypeFilter: Option " ","All Vendor",Vendor;
         ItemTypeFilter: Option " ","All Items","Item","Item Category";
         PurchaseCodeFilter: Text;
         ItemCodeFilter: Text;
         StartingDateFilter: Text[30];
         NoOfMonthEdit: Boolean;
+        ItemCate: Page "Item Categories";
 
 
     trigger OnOpenPage()
@@ -292,15 +322,6 @@ page 60606 "Purchase Quota By Amount"
     begin
         Rec.SetRange("Restriction Type", Rec."Restriction Type"::"By Amount");
     end;
-
-
-    /*trigger OnInsertRecord(BelowxRec: Boolean): Boolean
-    var
-    begin
-        Rec.Validate("Restriction Type", Rec."Restriction Type"::"By Amount");
-    end;
-    */
-
 
     trigger OnNewRecord(BelowxRec: Boolean)
     var
@@ -315,7 +336,6 @@ page 60606 "Purchase Quota By Amount"
             NoOfMonthEdit := true;
         end else begin
             NoOfMonthEdit := false;
-            //Clear(Rec."No of Months");
         end;
     end;
 

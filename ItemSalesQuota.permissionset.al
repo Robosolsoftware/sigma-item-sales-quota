@@ -14,5 +14,8 @@ permissionset 60600 ItemSalesQuota
         query "Daywise order Amt" = X,
         query "Daywise order quantity" = X,
         query "PO DayReceived Amt" = X,
-        query "PO Daywise order Amt" = X;
+        query "PO Daywise order Amt" = X,
+        tabledata "Purchase Budget Summary" = RIMD,
+        table "Purchase Budget Summary" = X,
+        page "Purchase Budget Summary" = X;
 }
