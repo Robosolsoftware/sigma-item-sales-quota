@@ -262,6 +262,46 @@ page 60602 "Quota By Quantity"
                 ApplicationArea = Notes;
             }
         }
+
+    }
+    actions
+    {
+        area(Processing)
+        {
+            group("Import/Export SO")
+            {
+                Caption = 'Import/Export Quota By Quantity';
+                action("Export Quota Template")
+                {
+                    ApplicationArea = All;
+                    Image = Export;
+                    Caption = 'Export Quota By Quantity Template';
+
+                    trigger OnAction()
+                    var
+                        ExportQuota: Codeunit "Export - Import Quota";
+                    begin
+                        ExportQuota.QuotaTemplateExport();
+                        Message('Completed..');
+                    end;
+                }
+                action("Import Quota Template")
+                {
+                    ApplicationArea = All;
+                    Image = Import;
+                    Caption = 'Import Quota By Quantity Template';
+
+                    trigger OnAction()
+                    var
+                        ExportQuota: codeunit "Export - Import Quota";
+                    begin
+                        ExportQuota.Run();
+                        Message('Completed..');
+                    end;
+                }
+
+            }
+        }
     }
 
 

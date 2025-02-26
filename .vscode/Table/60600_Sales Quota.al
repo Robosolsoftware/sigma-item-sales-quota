@@ -323,7 +323,7 @@ table 60600 "Sales Quota"
 
     keys
     {
-        key(Key1; "Sales Type", "Sales Code", "Item Type", "Item Code", "Restriction Type", "Start Date", "Ship-to Code", "Dimension Value", "Quantity Restriction")
+        key(Key1; "Sales Type", "Sales Code", "Item Type", "Item Code", "Restriction Type", "Start Date", "Ship-to Code", "Dimension Value")
         {
         }
     }
