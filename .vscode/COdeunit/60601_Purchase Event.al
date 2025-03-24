@@ -15,7 +15,8 @@ codeunit 60601 "Purchase Order Restriction"
     var
         RecUserSetup: Record "User Setup";
     begin
-        if Rec."Line Amount" <> 0 then begin
+
+        if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
             IF RecUserSetup.GET(USERID) THEN BEGIN
                 IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
                     CheckMaxOrderamt(Rec);
@@ -32,7 +33,7 @@ codeunit 60601 "Purchase Order Restriction"
         RecUserSetup: Record "User Setup";
     begin
         //NewCode Azhar++
-        if Rec."Line Amount" <> 0 then begin
+        if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
             IF RecUserSetup.GET(USERID) THEN BEGIN
                 IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
                     CheckMaxOrderamt(Rec);
@@ -50,7 +51,7 @@ codeunit 60601 "Purchase Order Restriction"
         RecUserSetup: Record "User Setup";
     begin
         //NewCode Azhar++
-        if Rec."Line Amount" <> 0 then begin
+        if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
             IF RecUserSetup.GET(USERID) THEN BEGIN
                 IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
                     CheckMaxOrderamt(Rec);
@@ -68,9 +69,9 @@ codeunit 60601 "Purchase Order Restriction"
         RecUserSetup: Record "User Setup";
     begin
         //NewCode Azhar++
-        if Rec."Line Amount" <> 0 then begin
+        if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
             IF RecUserSetup.GET(USERID) THEN BEGIN
-                IF NOT RecUserSetup."SO Override MaxQty Calculation" THEN BEGIN
+                IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
                     CheckMaxOrderamt(Rec);
                 END;
             END ELSE BEGIN
@@ -429,81 +430,83 @@ codeunit 60601 "Purchase Order Restriction"
         L_MaxOrderQty.SetRange("Quantity Restriction", L_MaxOrderQty."Quantity Restriction"::"Per Month");
         L_MaxOrderQty.SetRange("Restriction Type", L_MaxOrderQty."Restriction Type"::"By Amount");
         L_MaxOrderQty.SETFILTER("Maximum Quantity", '>%1', 0);
-        IF L_MaxOrderQty.FINDFIRST THEN BEGIN
-            WarningtypeOpion := Format(L_MaxOrderQty."Warning Type");
+        IF L_MaxOrderQty.FindSet() THEN BEGIN
+            repeat
+                WarningtypeOpion := Format(L_MaxOrderQty."Warning Type");
 
-            if (L_MaxOrderQty."Start Date" <= _PurchaseHeader."Order Date") and (L_MaxOrderQty."End Date" >= _PurchaseHeader."Order Date") then begin
+                if (L_MaxOrderQty."Start Date" <= _PurchaseHeader."Order Date") and (L_MaxOrderQty."End Date" >= _PurchaseHeader."Order Date") then begin
 
-                //Calculate Existing Order Amount++
-                PurchaseLine.Reset();
-                PurchaseLine.SetRange("Document Type", _PurchaseLine."Document Type");
-                PurchaseLine.SetFilter("Document No.", '<>%1', _PurchaseLine."Document No.");
-                //PurchaseLine.SetRange("Buy-from Vendor No.", _PurchaseHeader."Buy-from Vendor No.");
-                PurchaseLine.SetRange("Parent Category", ItemCat);
-                PurchaseLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
-                PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
-                if PurchaseLine.FindSet() then begin
-                    PurchaseLine.CalcSums("Outstanding Amt. Ex. VAT (LCY)");
-                    L_DayOrderAmount += PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
-                end;
+                    //Calculate Existing Order Amount++
+                    PurchaseLine.Reset();
+                    PurchaseLine.SetRange("Document Type", _PurchaseLine."Document Type");
+                    PurchaseLine.SetFilter("Document No.", '<>%1', _PurchaseLine."Document No.");
+                    //PurchaseLine.SetRange("Buy-from Vendor No.", _PurchaseHeader."Buy-from Vendor No.");
+                    PurchaseLine.SetRange("Parent Category", ItemCat);
+                    PurchaseLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                    PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+                    if PurchaseLine.FindSet() then begin
+                        PurchaseLine.CalcSums("Outstanding Amt. Ex. VAT (LCY)");
+                        L_DayOrderAmount += PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
+                    end;
 
-                //Calculate Same Order Amount but if same item in Different line++
-                PurchaseLine.Reset();
-                PurchaseLine.SetRange("Document Type", _PurchaseLine."Document Type");
-                PurchaseLine.SetRange("Document No.", _PurchaseLine."Document No.");
-                PurchaseLine.SetFilter("Line No.", '<>%1', _PurchaseLine."Line No.");
-                //PurchaseLine.SetRange("Buy-from Vendor No.", _PurchaseHeader."Buy-from Vendor No.");
-                PurchaseLine.SetRange("Parent Category", ItemCat);
-                PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
-                PurchaseLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
-                if PurchaseLine.FindSet() then begin
-                    PurchaseLine.CalcSums("Outstanding Amt. Ex. VAT (LCY)");
-                    L_DayOrderAmount += PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
-                end;
+                    //Calculate Same Order Amount but if same item in Different line++
+                    PurchaseLine.Reset();
+                    PurchaseLine.SetRange("Document Type", _PurchaseLine."Document Type");
+                    PurchaseLine.SetRange("Document No.", _PurchaseLine."Document No.");
+                    PurchaseLine.SetFilter("Line No.", '<>%1', _PurchaseLine."Line No.");
+                    //PurchaseLine.SetRange("Buy-from Vendor No.", _PurchaseHeader."Buy-from Vendor No.");
+                    PurchaseLine.SetRange("Parent Category", ItemCat);
+                    PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+                    PurchaseLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                    if PurchaseLine.FindSet() then begin
+                        PurchaseLine.CalcSums("Outstanding Amt. Ex. VAT (LCY)");
+                        L_DayOrderAmount += PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
+                    end;
 
-                //Calculate Posted  Document Amount++
-                // PurchInvLine.Reset();
-                // PurchInvLine.SetRange(Type, PurchInvLine.Type::Item);
-                // PurchInvLine.SetRange("Parent Category", ItemCat);
-                // //PurchInvLine.SetRange("Buy-from Vendor No.", _PurchaseLine."Buy-from Vendor No.");
-                // PurchInvLine.CalcFields("Order Date");
-                // PurchInvLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
-                // if PurchInvLine.FindSet() then begin
-                //     PurchInvLine.CalcSums(Amount);
-                //     L_DayOrderAmount += PurchInvLine.Amount;
-                // end;
-                Clear(AmountFromILE);
-                L_ILE.Reset();
-                L_ILE.SetRange("Entry Type", L_ILE."Entry Type"::Purchase);
-                L_ILE.SetRange("Document Type", L_ILE."Document Type"::"Purchase Receipt");
-                L_ILE.SetRange("Parent Category", ItemCat);
-                // L_ILE.SetFilter("Posting Date", '%1..%2', Sdate, Edate);
-                if L_ILE.FindSet() then begin
-                    repeat
-                        PurchRcptHeader.Reset();
-                        PurchRcptHeader.SetRange("No.", L_ILE."Document No.");
-                        if PurchRcptHeader.FindFirst() then begin
-                            if PurchRcptHeader."Order Date" in [Sdate .. Edate] then begin
-                                L_ILE.CalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
-                                AmountFromILE := AmountFromILE + (L_ILE."Cost Amount (Actual)" + L_ILE."Cost Amount (Expected)");
+                    //Calculate Posted  Document Amount++
+                    // PurchInvLine.Reset();
+                    // PurchInvLine.SetRange(Type, PurchInvLine.Type::Item);
+                    // PurchInvLine.SetRange("Parent Category", ItemCat);
+                    // //PurchInvLine.SetRange("Buy-from Vendor No.", _PurchaseLine."Buy-from Vendor No.");
+                    // PurchInvLine.CalcFields("Order Date");
+                    // PurchInvLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                    // if PurchInvLine.FindSet() then begin
+                    //     PurchInvLine.CalcSums(Amount);
+                    //     L_DayOrderAmount += PurchInvLine.Amount;
+                    // end;
+                    Clear(AmountFromILE);
+                    L_ILE.Reset();
+                    L_ILE.SetRange("Entry Type", L_ILE."Entry Type"::Purchase);
+                    L_ILE.SetRange("Document Type", L_ILE."Document Type"::"Purchase Receipt");
+                    L_ILE.SetRange("Parent Category", ItemCat);
+                    // L_ILE.SetFilter("Posting Date", '%1..%2', Sdate, Edate);
+                    if L_ILE.FindSet() then begin
+                        repeat
+                            PurchRcptHeader.Reset();
+                            PurchRcptHeader.SetRange("No.", L_ILE."Document No.");
+                            if PurchRcptHeader.FindFirst() then begin
+                                if PurchRcptHeader."Order Date" in [Sdate .. Edate] then begin
+                                    L_ILE.CalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
+                                    AmountFromILE := AmountFromILE + (L_ILE."Cost Amount (Actual)" + L_ILE."Cost Amount (Expected)");
+                                end;
                             end;
-                        end;
-                    until L_ILE.Next() = 0;
+                        until L_ILE.Next() = 0;
 
-                    L_DayOrderAmount += AmountFromILE;
+                        L_DayOrderAmount += AmountFromILE;
+                    end;
+
+
+
+                    //Current Line Amount
+                    L_OrderAmount := _PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
+
+                    L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderAmount;
+                    if L_RemainingQuantity <= 0 then
+                        L_RemainingQuantity := 0;
+
+                    CheckRemainingAmt(L_RemainingQuantity, 'ASICPMAMT', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Restriction Type", L_OrderAmount);
                 end;
-
-
-
-                //Current Line Amount
-                L_OrderAmount := _PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
-
-                L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderAmount;
-                if L_RemainingQuantity <= 0 then
-                    L_RemainingQuantity := 0;
-
-                CheckRemainingAmt(L_RemainingQuantity, 'ASICPMAMT', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Restriction Type", L_OrderAmount);
-            end;
+            until L_MaxOrderQty.Next() = 0;
         End;
     end;
 
