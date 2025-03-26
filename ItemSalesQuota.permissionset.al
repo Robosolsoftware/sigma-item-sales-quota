@@ -17,5 +17,6 @@ permissionset 60600 ItemSalesQuota
         query "PO Daywise order Amt" = X,
         tabledata "Purchase Budget Summary" = RIMD,
         table "Purchase Budget Summary" = X,
-        page "Purchase Budget Summary" = X;
+        page "Purchase Budget Summary" = X,
+        codeunit "Export - Import Quota" = X;
 }
