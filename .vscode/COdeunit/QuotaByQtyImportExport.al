@@ -121,9 +121,7 @@ codeunit 60602 "Export - Import Quota"
                 ErrorFound := true;
             end;
 
-
-
-            if GetValueAtIndex(RowNo, 2) = '' then begin
+            if GetValueAtIndex(RowNo, 5) = '' then begin
                 ErrorLog_excelbuffer.AddColumn('Item No. should not be blank. RowNo: ' + Format(RowNo), false, '', false, false, false, '', ErrorLog_excelbuffer."Cell Type"::Text);
                 ErrorFound := true;
             end;
@@ -318,5 +316,4 @@ codeunit 60602 "Export - Import Quota"
             SalesQuota.Insert(true);
         end;
     end;
-
 }
