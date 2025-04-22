@@ -288,12 +288,12 @@ codeunit 60602 "Export - Import Quota"
         SalesQuota.SetRange("Start Date", _ItemLedgerEntry."Posting Date");
         //SalesQuota.SetRange("Ship-to Code", _ItemLedgerEntry."Transport Method");
         SalesQuota.SetRange("Dimension Value", _ItemLedgerEntry."Job Task No.");
-        //SalesQuota.SetFilter("Quantity Restriction", _ItemLedgerEntry.Description);
+        SalesQuota.SetFilter("Quantity Restriction", _ItemLedgerEntry.Description);
         if SalesQuota.FindFirst() then begin
             // SalesQuota.Validate("Warehouse Class code", _ItemLedgerEntry."Location Code");
             SalesQuota.Validate("Maximum Quantity", _ItemLedgerEntry.Quantity);
             Evaluate(SalesQuota."Warning Type", _ItemLedgerEntry."Your ref Temp");
-            Evaluate(SalesQuota."Quantity Restriction", _ItemLedgerEntry.Description);
+            //Evaluate(SalesQuota."Quantity Restriction", _ItemLedgerEntry.Description);
             Evaluate(SalesQuota."No of Months", _ItemLedgerEntry."Area");
             SalesQuota.Validate("External Document No.", _ItemLedgerEntry."External Document No.");
             SalesQuota.Modify();
