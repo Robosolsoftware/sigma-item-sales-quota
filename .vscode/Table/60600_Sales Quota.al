@@ -275,10 +275,12 @@ table 60600 "Sales Quota"
                 //16th Training Points:+++++++
                 CheckPermissionForCDProducts(Rec."Item Code");
 
-                Rec.TestField("Start Date");
-                if Rec."End Date" <> 0D then begin
-                    if Rec."End Date" < Rec."Start Date" then
-                        Error('End Date should be greater than Start Date');
+                if Rec."Quantity Restriction" = Rec."Quantity Restriction"::"Per Month" then begin
+                    Rec.TestField("Start Date");
+                    if Rec."End Date" <> 0D then begin
+                        if Rec."End Date" < Rec."Start Date" then
+                            Error('End Date should be greater than Start Date');
+                    end;
                 end;
             end;
         }
@@ -316,6 +318,10 @@ table 60600 "Sales Quota"
                 //16th Training Points:+++++++
                 CheckPermissionForCDProducts(Rec."Item Code");
             end;
+        }
+        field(28; "Sheet Name"; Text[100])
+        {
+
         }
 
 
