@@ -10,111 +10,111 @@ codeunit 60601 "Purchase Order Restriction"
         WarningtypeOpion: Text;
 
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Purchase Document", OnPerformManualReleaseOnBeforeTestPurchasePrepayment, '', false, false)]
-    local procedure OnPerformManualReleaseOnBeforeTestPurchasePrepayment(var PurchaseHeader: Record "Purchase Header")
+    // [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Purchase Document", OnPerformManualReleaseOnBeforeTestPurchasePrepayment, '', false, false)]
+    // local procedure OnPerformManualReleaseOnBeforeTestPurchasePrepayment(var PurchaseHeader: Record "Purchase Header")
+    // var
+    //     RecUserSetup: Record "User Setup";
+    //     L_PurchaseLine: Record "Purchase Line";
+    // begin
+    //     if (PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Order) then begin
+    //         IF RecUserSetup.GET(USERID) THEN BEGIN
+    //             IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
+    //                 L_PurchaseLine.Reset();
+    //                 L_PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+    //                 L_PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+    //                 L_PurchaseLine.SetRange(Type, L_PurchaseLine.Type::Item);
+    //                 if L_PurchaseLine.FindSet() then begin
+    //                     repeat
+    //                         if L_PurchaseLine."Line Amount" <> 0 then
+    //                             CheckMaxOrderamt(L_PurchaseLine);
+    //                     until L_PurchaseLine.Next() = 0;
+    //                 end;
+    //             END;
+    //         END ELSE BEGIN
+    //             L_PurchaseLine.Reset();
+    //             L_PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+    //             L_PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+    //             L_PurchaseLine.SetRange(Type, L_PurchaseLine.Type::Item);
+    //             if L_PurchaseLine.FindSet() then begin
+    //                 repeat
+    //                     if L_PurchaseLine."Line Amount" <> 0 then
+    //                         CheckMaxOrderamt(L_PurchaseLine);
+    //                 until L_PurchaseLine.Next() = 0;
+    //             end;
+    //         END;
+    //     end;
+    // end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterValidateEvent', 'Line Amount', false, false)]
+    local procedure LineAmountEvent(var Rec: Record "Purchase Line"; CurrFieldNo: Integer)
     var
         RecUserSetup: Record "User Setup";
-        L_PurchaseLine: Record "Purchase Line";
     begin
-        if (PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Order) then begin
+
+        if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
             IF RecUserSetup.GET(USERID) THEN BEGIN
                 IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
-                    L_PurchaseLine.Reset();
-                    L_PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
-                    L_PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
-                    L_PurchaseLine.SetRange(Type, L_PurchaseLine.Type::Item);
-                    if L_PurchaseLine.FindSet() then begin
-                        repeat
-                            if L_PurchaseLine."Line Amount" <> 0 then
-                                CheckMaxOrderamt(L_PurchaseLine);
-                        until L_PurchaseLine.Next() = 0;
-                    end;
+                    CheckMaxOrderamt(Rec);
                 END;
             END ELSE BEGIN
-                L_PurchaseLine.Reset();
-                L_PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
-                L_PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
-                L_PurchaseLine.SetRange(Type, L_PurchaseLine.Type::Item);
-                if L_PurchaseLine.FindSet() then begin
-                    repeat
-                        if L_PurchaseLine."Line Amount" <> 0 then
-                            CheckMaxOrderamt(L_PurchaseLine);
-                    until L_PurchaseLine.Next() = 0;
-                end;
+                CheckMaxOrderamt(Rec);
             END;
         end;
     end;
 
-    // [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterValidateEvent', 'Line Amount', false, false)]
-    // local procedure LineAmountEvent(var Rec: Record "Purchase Line"; CurrFieldNo: Integer)
-    // var
-    //     RecUserSetup: Record "User Setup";
-    // begin
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterValidateEvent', 'Unit cost', false, false)]
+    local procedure UnitPriceEvent(var Rec: Record "Purchase Line"; CurrFieldNo: Integer)
+    var
+        RecUserSetup: Record "User Setup";
+    begin
+        //NewCode Azhar++
+        if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
+            IF RecUserSetup.GET(USERID) THEN BEGIN
+                IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
+                    CheckMaxOrderamt(Rec);
+                END;
+            END ELSE BEGIN
+                CheckMaxOrderamt(Rec);
+            END;
+        end;
+        //NewCode Azhar--
+    end;
 
-    //     if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
-    //         IF RecUserSetup.GET(USERID) THEN BEGIN
-    //             IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
-    //                 CheckMaxOrderamt(Rec);
-    //             END;
-    //         END ELSE BEGIN
-    //             CheckMaxOrderamt(Rec);
-    //         END;
-    //     end;
-    // end;
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterValidateEvent', 'Line Discount %', false, false)]
+    local procedure LineDiscountPerEvent(var Rec: Record "Purchase Line"; CurrFieldNo: Integer)
+    var
+        RecUserSetup: Record "User Setup";
+    begin
+        //NewCode Azhar++
+        if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
+            IF RecUserSetup.GET(USERID) THEN BEGIN
+                IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
+                    CheckMaxOrderamt(Rec);
+                END;
+            END ELSE BEGIN
+                CheckMaxOrderamt(Rec);
+            END;
+        end;
+        //NewCode Azhar--
+    end;
 
-    // [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterValidateEvent', 'Unit cost', false, false)]
-    // local procedure UnitPriceEvent(var Rec: Record "Purchase Line"; CurrFieldNo: Integer)
-    // var
-    //     RecUserSetup: Record "User Setup";
-    // begin
-    //     //NewCode Azhar++
-    //     if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
-    //         IF RecUserSetup.GET(USERID) THEN BEGIN
-    //             IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
-    //                 CheckMaxOrderamt(Rec);
-    //             END;
-    //         END ELSE BEGIN
-    //             CheckMaxOrderamt(Rec);
-    //         END;
-    //     end;
-    //     //NewCode Azhar--
-    // end;
-
-    // [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterValidateEvent', 'Line Discount %', false, false)]
-    // local procedure LineDiscountPerEvent(var Rec: Record "Purchase Line"; CurrFieldNo: Integer)
-    // var
-    //     RecUserSetup: Record "User Setup";
-    // begin
-    //     //NewCode Azhar++
-    //     if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
-    //         IF RecUserSetup.GET(USERID) THEN BEGIN
-    //             IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
-    //                 CheckMaxOrderamt(Rec);
-    //             END;
-    //         END ELSE BEGIN
-    //             CheckMaxOrderamt(Rec);
-    //         END;
-    //     end;
-    //     //NewCode Azhar--
-    // end;
-
-    // [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterValidateEvent', 'Line Discount Amount', false, false)]
-    // local procedure LineDiscountAmtEvent(var Rec: Record "Purchase Line"; CurrFieldNo: Integer)
-    // var
-    //     RecUserSetup: Record "User Setup";
-    // begin
-    //     //NewCode Azhar++
-    //     if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
-    //         IF RecUserSetup.GET(USERID) THEN BEGIN
-    //             IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
-    //                 CheckMaxOrderamt(Rec);
-    //             END;
-    //         END ELSE BEGIN
-    //             CheckMaxOrderamt(Rec);
-    //         END;
-    //     end;
-    //     //NewCode Azhar--
-    // end;
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterValidateEvent', 'Line Discount Amount', false, false)]
+    local procedure LineDiscountAmtEvent(var Rec: Record "Purchase Line"; CurrFieldNo: Integer)
+    var
+        RecUserSetup: Record "User Setup";
+    begin
+        //NewCode Azhar++
+        if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
+            IF RecUserSetup.GET(USERID) THEN BEGIN
+                IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
+                    CheckMaxOrderamt(Rec);
+                END;
+            END ELSE BEGIN
+                CheckMaxOrderamt(Rec);
+            END;
+        end;
+        //NewCode Azhar--
+    end;
 
     procedure CheckMaxOrderamt(P_PurchaseLine: Record "Purchase Line")
     var
