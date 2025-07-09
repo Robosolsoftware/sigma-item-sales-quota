@@ -218,7 +218,7 @@ codeunit 60602 "Export - Import Quota"
 
                 if (UpperCase(GetValueAtIndex(RowNo, 8)) = UpperCase('Per Day')) OR (UpperCase(GetValueAtIndex(RowNo, 8)) = UpperCase('Per Order')) then begin
                     if UpperCase(GetValueAtIndex(RowNo, 10)) <> '' then begin
-                        ErrorLog_excelbuffer.AddColumn('Start Date should be blank. RowNo: ' + Format(RowNo), false, '', false, false, false, '', ErrorLog_excelbuffer."Cell Type"::Text);
+                        ErrorLog_excelbuffer.AddColumn('Start Date should be blank for "Per Day" and "Per Order". RowNo: ' + Format(RowNo), false, '', false, false, false, '', ErrorLog_excelbuffer."Cell Type"::Text);
                         ErrorFound := true;
                     end;
                 end;
@@ -233,7 +233,7 @@ codeunit 60602 "Export - Import Quota"
             end;
 
             //Start Date++
-            if UpperCase(GetValueAtIndex(RowNo, 8)) = UpperCase('Per Month') then begin
+            if (UpperCase(GetValueAtIndex(RowNo, 8)) = UpperCase('Per Month')) OR (UpperCase(GetValueAtIndex(RowNo, 8)) = UpperCase('Exception Per Day')) then begin
                 if UpperCase(GetValueAtIndex(RowNo, 10)) = '' then begin
                     ErrorLog_excelbuffer.AddColumn('Start Date should not be blank. RowNo: ' + Format(RowNo), false, '', false, false, false, '', ErrorLog_excelbuffer."Cell Type"::Text);
                     ErrorFound := true;
@@ -389,6 +389,7 @@ codeunit 60602 "Export - Import Quota"
     var
         SalesQuota: Record "Sales Quota";
     begin
+        Clear(SalesQuota);
         SalesQuota.Reset();
         SalesQuota.SetFilter("Sales Type", _ItemLedgerEntry."Source No.");
         SalesQuota.SetRange("Sales Code", _ItemLedgerEntry."Document No.");
@@ -398,15 +399,7 @@ codeunit 60602 "Export - Import Quota"
         SalesQuota.SetRange("Start Date", _ItemLedgerEntry."Posting Date");
         SalesQuota.SetFilter("Quantity Restriction", _ItemLedgerEntry.Description);
         SalesQuota.SetRange("Restriction Type", SalesQuota."Restriction Type"::"By Quantity");
-        if SalesQuota.FindFirst() then begin
-            //+++++++++++++++++++++++++++++++++++++++ Will discuss +++++++++++++++++++++++++++++++++++++
-            // SalesQuota.Validate("Maximum Quantity", _ItemLedgerEntry.Quantity);
-            // Evaluate(SalesQuota."Warning Type", _ItemLedgerEntry."Your ref Temp");
-            // Evaluate(SalesQuota."No of Months", _ItemLedgerEntry."Area");
-            // SalesQuota.Validate("External Document No.", _ItemLedgerEntry."External Document No.");
-            // SalesQuota.Modify();
-            //+++++++++++++++++++++++++++++++++++++++ Will discuss +++++++++++++++++++++++++++++++++++++
-        end else begin
+        if not SalesQuota.FindFirst() then begin
             SalesQuota.Init();
             Evaluate(SalesQuota."Sales Type", _ItemLedgerEntry."Source No.");
             SalesQuota.Validate("Sales Code", _ItemLedgerEntry."Document No.");
@@ -420,7 +413,7 @@ codeunit 60602 "Export - Import Quota"
             Evaluate(SalesQuota."Quantity Restriction", _ItemLedgerEntry.Description);
             Evaluate(SalesQuota."No of Months", _ItemLedgerEntry."Area");
             Evaluate(SalesQuota."Sales Name", RecILETemp."Del Adress Temp");
-            Evaluate(SalesQuota."Sheet Name", SheetName);
+            Evaluate(SalesQuota."Sheet Name", FileName);
             SalesQuota."Restriction Type" := SalesQuota."Restriction Type"::"By Quantity";
             SalesQuota.Insert(true);
         end;

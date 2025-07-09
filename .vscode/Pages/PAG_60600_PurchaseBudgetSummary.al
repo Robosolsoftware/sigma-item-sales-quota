@@ -204,6 +204,7 @@ page 60600 "Purchase Budget Summary"
     local procedure GetBudgetFromPurchQuota(CategoryCode: Code[20]): Decimal
     var
         L_PurchaseQuotaByAmt: Record "Purchase Quota";
+        L_SalesHeader: Record "Purchase Header";
     begin
         L_PurchaseQuotaByAmt.Reset();
         L_PurchaseQuotaByAmt.SetRange("Purchase Type", L_PurchaseQuotaByAmt."Purchase Type"::"All Vendor");
