@@ -275,7 +275,7 @@ table 60600 "Sales Quota"
                 //16th Training Points:+++++++
                 CheckPermissionForCDProducts(Rec."Item Code");
 
-                if Rec."Quantity Restriction" = Rec."Quantity Restriction"::"Per Month" then begin
+                if (Rec."Quantity Restriction" = Rec."Quantity Restriction"::"Per Month") OR (Rec."Quantity Restriction" = Rec."Quantity Restriction"::"Exception Per Day") then begin
                     Rec.TestField("Start Date");
                     if Rec."End Date" <> 0D then begin
                         if Rec."End Date" < Rec."Start Date" then

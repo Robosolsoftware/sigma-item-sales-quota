@@ -60,6 +60,8 @@ codeunit 60602 "Export - Import Quota"
         L_CustomerPriceGroup: Record "Customer Price Group";
         L_Dimension: Record Dimension;
         L_DimensionValue: Record "Dimension Value";
+        L_StartDate: Date;
+        L_EndDate: Date;
     begin
         Rec_ExcelBuffer.DeleteAll();
         ErrorLog_excelbuffer.DeleteAll();
@@ -221,6 +223,11 @@ codeunit 60602 "Export - Import Quota"
                         ErrorLog_excelbuffer.AddColumn('Start Date should be blank for "Per Day" and "Per Order". RowNo: ' + Format(RowNo), false, '', false, false, false, '', ErrorLog_excelbuffer."Cell Type"::Text);
                         ErrorFound := true;
                     end;
+
+                    if UpperCase(GetValueAtIndex(RowNo, 11)) <> '' then begin
+                        ErrorLog_excelbuffer.AddColumn('End Date should be blank for "Per Day" and "Per Order". RowNo: ' + Format(RowNo), false, '', false, false, false, '', ErrorLog_excelbuffer."Cell Type"::Text);
+                        ErrorFound := true;
+                    end;
                 end;
             end;
 
@@ -228,6 +235,10 @@ codeunit 60602 "Export - Import Quota"
             if UpperCase(GetValueAtIndex(RowNo, 8)) = UpperCase('Per Month') then begin
                 if UpperCase(GetValueAtIndex(RowNo, 9)) = '' then begin
                     ErrorLog_excelbuffer.AddColumn('No of Months should not be blank. RowNo: ' + Format(RowNo), false, '', false, false, false, '', ErrorLog_excelbuffer."Cell Type"::Text);
+                    ErrorFound := true;
+                end;
+                if UpperCase(GetValueAtIndex(RowNo, 11)) <> '' then begin
+                    ErrorLog_excelbuffer.AddColumn('End Date should be blank for "Per Month". RowNo: ' + Format(RowNo), false, '', false, false, false, '', ErrorLog_excelbuffer."Cell Type"::Text);
                     ErrorFound := true;
                 end;
             end;
@@ -244,6 +255,27 @@ codeunit 60602 "Export - Import Quota"
             if UpperCase(GetValueAtIndex(RowNo, 8)) = UpperCase('Exception Per Day') then begin
                 if UpperCase(GetValueAtIndex(RowNo, 1)) <> UpperCase('Customer') then begin
                     ErrorLog_excelbuffer.AddColumn('Exception Per Day only work for sales type customer. RowNo: ' + Format(RowNo), false, '', false, false, false, '', ErrorLog_excelbuffer."Cell Type"::Text);
+                    ErrorFound := true;
+                end;
+
+                if UpperCase(GetValueAtIndex(RowNo, 11)) = '' then begin
+                    ErrorLog_excelbuffer.AddColumn('End Date should not be blank. RowNo: ' + Format(RowNo), false, '', false, false, false, '', ErrorLog_excelbuffer."Cell Type"::Text);
+                    ErrorFound := true;
+                end;
+
+                if UpperCase(GetValueAtIndex(RowNo, 9)) <> '' then begin
+                    ErrorLog_excelbuffer.AddColumn('No of Months should not be blank. RowNo: ' + Format(RowNo), false, '', false, false, false, '', ErrorLog_excelbuffer."Cell Type"::Text);
+                    ErrorFound := true;
+                end;
+
+                Clear(L_StartDate);
+                Clear(L_EndDate);
+                if UpperCase(GetValueAtIndex(RowNo, 10)) <> '' then
+                    Evaluate(L_StartDate, GetValueAtIndex(RowNo, 10));
+                if UpperCase(GetValueAtIndex(RowNo, 11)) <> '' then
+                    Evaluate(L_EndDate, GetValueAtIndex(RowNo, 11));
+                if L_StartDate > L_EndDate then begin
+                    ErrorLog_excelbuffer.AddColumn('End Date should be greater than Start Date. RowNo: ' + Format(RowNo), false, '', false, false, false, '', ErrorLog_excelbuffer."Cell Type"::Text);
                     ErrorFound := true;
                 end;
             end;
@@ -273,7 +305,9 @@ codeunit 60602 "Export - Import Quota"
             if GetValueAtIndex(RowNo, 10) <> '' then
                 Evaluate(RecILETemp."Posting Date", GetValueAtIndex(RowNo, 10)); //Start Date
             if GetValueAtIndex(RowNo, 11) <> '' then
-                RecILETemp."External Document No." := GetValueAtIndex(RowNo, 11);//External Doc.No
+                Evaluate(RecILETemp."Document Date", GetValueAtIndex(RowNo, 11)); //End Date
+            if GetValueAtIndex(RowNo, 12) <> '' then
+                RecILETemp."External Document No." := GetValueAtIndex(RowNo, 12);//External Doc.No
             if GetValueAtIndex(RowNo, 3) <> '' then
                 RecILETemp."Del Adress Temp" := GetValueAtIndex(RowNo, 3);
             if ErrorFound = true then
@@ -367,6 +401,7 @@ codeunit 60602 "Export - Import Quota"
         Excelbuffer.AddColumn('Quantity Restriction', false, '', false, false, false, '', excelbuffer."Cell Type"::Text);
         Excelbuffer.AddColumn('No of Months', false, '', false, false, false, '', excelbuffer."Cell Type"::Text);
         Excelbuffer.AddColumn('Start Date', false, '', false, false, false, '', excelbuffer."Cell Type"::Date);
+        Excelbuffer.AddColumn('End Date', false, '', false, false, false, '', excelbuffer."Cell Type"::Date);
         Excelbuffer.AddColumn('External Document No.', false, '', false, false, false, '', excelbuffer."Cell Type"::Text);
         Excelbuffer.CreateNewBook('Sample Template');
         Excelbuffer.WriteSheet('Sample Template', CompanyName, UserId);
@@ -413,6 +448,8 @@ codeunit 60602 "Export - Import Quota"
             Evaluate(SalesQuota."Quantity Restriction", _ItemLedgerEntry.Description);
             Evaluate(SalesQuota."No of Months", _ItemLedgerEntry."Area");
             Evaluate(SalesQuota."Sales Name", RecILETemp."Del Adress Temp");
+            if _ItemLedgerEntry."Document Date" <> 0D then
+                SalesQuota.Validate("End Date", _ItemLedgerEntry."Document Date");
             Evaluate(SalesQuota."Sheet Name", FileName);
             SalesQuota."Restriction Type" := SalesQuota."Restriction Type"::"By Quantity";
             SalesQuota.Insert(true);
