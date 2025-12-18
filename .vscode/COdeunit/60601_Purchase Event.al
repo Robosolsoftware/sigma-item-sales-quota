@@ -1,5 +1,6 @@
 codeunit 60601 "Purchase Order Restriction"
 {
+    SingleInstance = true;
     trigger OnRun()
     begin
 
@@ -8,6 +9,7 @@ codeunit 60601 "Purchase Order Restriction"
     var
         myInt: Integer;
         WarningtypeOpion: Text;
+        G_CallFromDelte: Boolean;
 
 
     // [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Purchase Document", OnPerformManualReleaseOnBeforeTestPurchasePrepayment, '', false, false)]
@@ -45,76 +47,98 @@ codeunit 60601 "Purchase Order Restriction"
     //     end;
     // end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterValidateEvent', 'Line Amount', false, false)]
-    local procedure LineAmountEvent(var Rec: Record "Purchase Line"; CurrFieldNo: Integer)
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnDeleteOnBeforeTestStatusOpen, '', false, false)]
+    local procedure OnDeleteOnBeforeTestStatusOpen()
+    begin
+        G_CallFromDelte := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterUpdateAmountsDone, '', false, false)]
+    local procedure OnAfterUpdateAmountsDone(var PurchLine: Record "Purchase Line")
     var
         RecUserSetup: Record "User Setup";
     begin
-
-        if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
+        if ((PurchLine."Line Amount" <> 0) AND (PurchLine."Document Type" = PurchLine."Document Type"::Order) AND (G_CallFromDelte = false)) then begin
             IF RecUserSetup.GET(USERID) THEN BEGIN
                 IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
-                    CheckMaxOrderamt(Rec);
+                    CheckMaxOrderamt(PurchLine);
                 END;
             END ELSE BEGIN
-                CheckMaxOrderamt(Rec);
+                CheckMaxOrderamt(PurchLine);
             END;
         end;
+        Clear(G_CallFromDelte);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterValidateEvent', 'Unit cost', false, false)]
-    local procedure UnitPriceEvent(var Rec: Record "Purchase Line"; CurrFieldNo: Integer)
-    var
-        RecUserSetup: Record "User Setup";
-    begin
-        //NewCode Azhar++
-        if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
-            IF RecUserSetup.GET(USERID) THEN BEGIN
-                IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
-                    CheckMaxOrderamt(Rec);
-                END;
-            END ELSE BEGIN
-                CheckMaxOrderamt(Rec);
-            END;
-        end;
-        //NewCode Azhar--
-    end;
+    // [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterValidateEvent', 'Line Amount', false, false)]
+    // local procedure LineAmountEvent(var Rec: Record "Purchase Line"; CurrFieldNo: Integer)
+    // var
+    //     RecUserSetup: Record "User Setup";
+    // begin
+    //     if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
+    //         IF RecUserSetup.GET(USERID) THEN BEGIN
+    //             IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
+    //                 CheckMaxOrderamt(Rec);
+    //             END;
+    //         END ELSE BEGIN
+    //             CheckMaxOrderamt(Rec);
+    //         END;
+    //     end;
+    // end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterValidateEvent', 'Line Discount %', false, false)]
-    local procedure LineDiscountPerEvent(var Rec: Record "Purchase Line"; CurrFieldNo: Integer)
-    var
-        RecUserSetup: Record "User Setup";
-    begin
-        //NewCode Azhar++
-        if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
-            IF RecUserSetup.GET(USERID) THEN BEGIN
-                IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
-                    CheckMaxOrderamt(Rec);
-                END;
-            END ELSE BEGIN
-                CheckMaxOrderamt(Rec);
-            END;
-        end;
-        //NewCode Azhar--
-    end;
+    // [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterValidateEvent', 'Unit cost', false, false)]
+    // local procedure UnitPriceEvent(var Rec: Record "Purchase Line"; CurrFieldNo: Integer)
+    // var
+    //     RecUserSetup: Record "User Setup";
+    // begin
+    //     //NewCode Azhar++
+    //     if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
+    //         IF RecUserSetup.GET(USERID) THEN BEGIN
+    //             IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
+    //                 CheckMaxOrderamt(Rec);
+    //             END;
+    //         END ELSE BEGIN
+    //             CheckMaxOrderamt(Rec);
+    //         END;
+    //     end;
+    //     //NewCode Azhar--
+    // end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterValidateEvent', 'Line Discount Amount', false, false)]
-    local procedure LineDiscountAmtEvent(var Rec: Record "Purchase Line"; CurrFieldNo: Integer)
-    var
-        RecUserSetup: Record "User Setup";
-    begin
-        //NewCode Azhar++
-        if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
-            IF RecUserSetup.GET(USERID) THEN BEGIN
-                IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
-                    CheckMaxOrderamt(Rec);
-                END;
-            END ELSE BEGIN
-                CheckMaxOrderamt(Rec);
-            END;
-        end;
-        //NewCode Azhar--
-    end;
+    // [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterValidateEvent', 'Line Discount %', false, false)]
+    // local procedure LineDiscountPerEvent(var Rec: Record "Purchase Line"; CurrFieldNo: Integer)
+    // var
+    //     RecUserSetup: Record "User Setup";
+    // begin
+    //     //NewCode Azhar++
+    //     if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
+    //         IF RecUserSetup.GET(USERID) THEN BEGIN
+    //             IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
+    //                 CheckMaxOrderamt(Rec);
+    //             END;
+    //         END ELSE BEGIN
+    //             CheckMaxOrderamt(Rec);
+    //         END;
+    //     end;
+    //     //NewCode Azhar--
+    // end;
+
+    // [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterValidateEvent', 'Line Discount Amount', false, false)]
+    // local procedure LineDiscountAmtEvent(var Rec: Record "Purchase Line"; CurrFieldNo: Integer)
+    // var
+    //     RecUserSetup: Record "User Setup";
+    // begin
+    //     //NewCode Azhar++
+    //     if ((Rec."Line Amount" <> 0) AND (Rec."Document Type" = Rec."Document Type"::Order)) then begin
+    //         IF RecUserSetup.GET(USERID) THEN BEGIN
+    //             IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
+    //                 CheckMaxOrderamt(Rec);
+    //             END;
+    //         END ELSE BEGIN
+    //             CheckMaxOrderamt(Rec);
+    //         END;
+    //     end;
+    //     //NewCode Azhar--
+    // end;
 
     procedure CheckMaxOrderamt(P_PurchaseLine: Record "Purchase Line")
     var
@@ -125,13 +149,11 @@ codeunit 60601 "Purchase Order Restriction"
         currentMonthAmt: Integer;
         CurrentMonth_TextAmt: Text;
         EndDateAmt: Date;
+        L_QuotaFound: Boolean;
     begin
-
-
         Clear(CurrentMonthStartDateAmt);
         Clear(EndDateAmt);
-        // IF CurrFieldNoGlo <> 15 THEN
-        //     EXIT;
+        Clear(L_QuotaFound);
 
         PurchaseHeader.Reset();
         PurchaseHeader.SetRange("No.", P_PurchaseLine."Document No.");
@@ -194,18 +216,23 @@ codeunit 60601 "Purchase Order Restriction"
         //-------------2: All Customer, Selected Item, ErrorCode(ASIPMAMT)-------------
         //PerMonthAllVendorSelItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
         //-------------3: All Customer, Selected Item Category, ErrorCode(ASICPMAMT)-------------
-        PerMonthAllVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Parent Category", CurrentMonthStartDateAmt, EndDateAmt);
+        L_QuotaFound := PerMonthAllVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Parent Category", CurrentMonthStartDateAmt, EndDateAmt);
         //-------------4: Selected Customer, All Item, ErrorCode(SCAPMAMT)-------------
         //PerMonthSelVendorAllItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
         //-------------5: Selected Customer, Selected Item, ErrorCode(SCSIPMAMT)-------------
         //PerMonthSelVendorSelItemAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Item Category Code", CurrentMonthStartDateAmt, EndDateAmt);
         //-------------6: Selected Customer, Selected Item Category, ErrorCode(SCSICPMAMT)-------
-        PerMonthSelVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Parent Category", CurrentMonthStartDateAmt, EndDateAmt);
+        if L_QuotaFound = false then
+            L_QuotaFound := PerMonthSelVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Parent Category", CurrentMonthStartDateAmt, EndDateAmt);
         //Per Month all 6 validation--
+
+        //If Quota Not Found then Exit
+        if (not L_QuotaFound) AND (P_PurchaseLine.Type = P_PurchaseLine.Type::Item) then
+            Error('Quota by Amount Setup not Found for order number %1 and Line number %2', P_PurchaseLine."Document No.", P_PurchaseLine."Line No.");
 
     end;
 
-    procedure PerMonthSelVendorSelItemCatAmt(_PurchaseLine: Record "Purchase Line"; _PurchaseHeader: Record "Purchase Header"; ItemCat: code[20]; Sdate: date; Edate: Date)
+    procedure PerMonthSelVendorSelItemCatAmt(_PurchaseLine: Record "Purchase Line"; _PurchaseHeader: Record "Purchase Header"; ItemCat: code[20]; Sdate: date; Edate: Date) IsQuotaExists: Boolean
     var
         L_MaxOrderQty: Record 60602;
         L_DayOrderAmount: Decimal;
@@ -216,6 +243,7 @@ codeunit 60601 "Purchase Order Restriction"
         L_ILE: Record "Item Ledger Entry";
         AmountFromILE: Decimal;
         PurchRcptHeader: Record "Purch. Rcpt. Header";
+        L_PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
         Clear(L_DayOrderAmount);
         Clear(L_RemainingQuantity);
@@ -244,7 +272,7 @@ codeunit 60601 "Purchase Order Restriction"
                     PurchaseLine.SetFilter("Document No.", '<>%1', _PurchaseLine."Document No.");
                     //PurchaseLine.SetRange("Buy-from Vendor No.", _PurchaseHeader."Buy-from Vendor No.");
                     PurchaseLine.SetRange("Parent Category", ItemCat);
-                    PurchaseLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                    PurchaseLine.SetFilter("Custom Order Date", '%1..%2', Sdate, Edate);
                     PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
                     if PurchaseLine.FindSet() then begin
                         PurchaseLine.CalcSums("Outstanding Amt. Ex. VAT (LCY)");
@@ -259,7 +287,7 @@ codeunit 60601 "Purchase Order Restriction"
                     //PurchaseLine.SetRange("Buy-from Vendor No.", _PurchaseHeader."Buy-from Vendor No.");
                     PurchaseLine.SetRange("Parent Category", ItemCat);
                     PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
-                    PurchaseLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                    PurchaseLine.SetFilter("Custom Order Date", '%1..%2', Sdate, Edate);
                     if PurchaseLine.FindSet() then begin
                         PurchaseLine.CalcSums("Outstanding Amt. Ex. VAT (LCY)");
                         L_DayOrderAmount += PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
@@ -276,23 +304,36 @@ codeunit 60601 "Purchase Order Restriction"
                     //     PurchInvLine.CalcSums(Amount);
                     //     L_DayOrderAmount += PurchInvLine.Amount;
                     // end;
+                    // Clear(AmountFromILE);
+                    // L_ILE.Reset();
+                    // L_ILE.SetRange("Entry Type", L_ILE."Entry Type"::Purchase);
+                    // L_ILE.SetRange("Document Type", L_ILE."Document Type"::"Purchase Receipt");
+                    // L_ILE.SetRange("Parent Category", ItemCat);
+                    // // L_ILE.SetFilter("Posting Date", '%1..%2', Sdate, Edate);
+                    // if L_ILE.FindSet() then begin
+                    //     repeat
+                    //         PurchRcptHeader.Reset();
+                    //         PurchRcptHeader.SetRange("No.", L_ILE."Document No.");
+                    //         if PurchRcptHeader.FindFirst() then begin
+                    //             if PurchRcptHeader."Order Date" in [Sdate .. Edate] then begin
+                    //                 L_ILE.CalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
+                    //                 AmountFromILE := AmountFromILE + (L_ILE."Cost Amount (Actual)" + L_ILE."Cost Amount (Expected)");
+                    //             end;
+                    //         end;
+                    //     until L_ILE.Next() = 0;
+
+                    //     L_DayOrderAmount += AmountFromILE;
+                    // end;
                     Clear(AmountFromILE);
-                    L_ILE.Reset();
-                    L_ILE.SetRange("Entry Type", L_ILE."Entry Type"::Purchase);
-                    L_ILE.SetRange("Document Type", L_ILE."Document Type"::"Purchase Receipt");
-                    L_ILE.SetRange("Parent Category", ItemCat);
-                    // L_ILE.SetFilter("Posting Date", '%1..%2', Sdate, Edate);
-                    if L_ILE.FindSet() then begin
+                    L_PurchRcptLine.Reset();
+                    L_PurchRcptLine.SetRange(Type, L_PurchRcptLine.Type::Item);
+                    L_PurchRcptLine.SetRange("Parent Category", ItemCat);
+                    L_PurchRcptLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                    L_PurchRcptLine.SetFilter(Quantity, '>0');
+                    if L_PurchRcptLine.FindSet() then begin
                         repeat
-                            PurchRcptHeader.Reset();
-                            PurchRcptHeader.SetRange("No.", L_ILE."Document No.");
-                            if PurchRcptHeader.FindFirst() then begin
-                                if PurchRcptHeader."Order Date" in [Sdate .. Edate] then begin
-                                    L_ILE.CalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
-                                    AmountFromILE := AmountFromILE + (L_ILE."Cost Amount (Actual)" + L_ILE."Cost Amount (Expected)");
-                                end;
-                            end;
-                        until L_ILE.Next() = 0;
+                            AmountFromILE := AmountFromILE + L_PurchRcptLine."Unit Cost (LCY)" * L_PurchRcptLine.Quantity;
+                        until L_PurchRcptLine.Next() = 0;
 
                         L_DayOrderAmount += AmountFromILE;
                     end;
@@ -306,11 +347,16 @@ codeunit 60601 "Purchase Order Restriction"
 
                     CheckRemainingAmt(L_RemainingQuantity, 'ASICPMAMT', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Restriction Type", L_OrderAmount);
 
+                    //Quota Found
+                    IsQuotaExists := true;
+
                     //If not Error then Exit +++++
                     exit;
-                end;
+                end else
+                    IsQuotaExists := false;
             until L_MaxOrderQty.Next() = 0;
-        end;
+        end else
+            IsQuotaExists := false;
     end;
 
     procedure PerMonthSelVendorSelItemAmt(_PurchaseLine: Record "Purchase Line"; _PurchaseHeader: Record "Purchase Header"; ItemCat: code[20]; Sdate: date; Edate: Date)
@@ -448,7 +494,7 @@ codeunit 60601 "Purchase Order Restriction"
     end;
 
 
-    procedure PerMonthAllVendorSelItemCatAmt(_PurchaseLine: Record "Purchase Line"; _PurchaseHeader: Record "Purchase Header"; ItemCat: code[20]; Sdate: date; Edate: Date)
+    procedure PerMonthAllVendorSelItemCatAmt(_PurchaseLine: Record "Purchase Line"; _PurchaseHeader: Record "Purchase Header"; ItemCat: code[20]; Sdate: date; Edate: Date) IsQuotaExists: Boolean
     var
         L_MaxOrderQty: Record 60602;
         L_DayOrderAmount: Decimal;
@@ -459,6 +505,7 @@ codeunit 60601 "Purchase Order Restriction"
         L_ILE: Record "Item Ledger Entry";
         AmountFromILE: Decimal;
         PurchRcptHeader: Record "Purch. Rcpt. Header";
+        L_PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
         Clear(L_DayOrderAmount);
         Clear(L_RemainingQuantity);
@@ -486,7 +533,7 @@ codeunit 60601 "Purchase Order Restriction"
                     PurchaseLine.SetFilter("Document No.", '<>%1', _PurchaseLine."Document No.");
                     //PurchaseLine.SetRange("Buy-from Vendor No.", _PurchaseHeader."Buy-from Vendor No.");
                     PurchaseLine.SetRange("Parent Category", ItemCat);
-                    PurchaseLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                    PurchaseLine.SetFilter("Custom Order Date", '%1..%2', Sdate, Edate);
                     PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
                     if PurchaseLine.FindSet() then begin
                         PurchaseLine.CalcSums("Outstanding Amt. Ex. VAT (LCY)");
@@ -501,7 +548,7 @@ codeunit 60601 "Purchase Order Restriction"
                     //PurchaseLine.SetRange("Buy-from Vendor No.", _PurchaseHeader."Buy-from Vendor No.");
                     PurchaseLine.SetRange("Parent Category", ItemCat);
                     PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
-                    PurchaseLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                    PurchaseLine.SetFilter("Custom Order Date", '%1..%2', Sdate, Edate);
                     if PurchaseLine.FindSet() then begin
                         PurchaseLine.CalcSums("Outstanding Amt. Ex. VAT (LCY)");
                         L_DayOrderAmount += PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
@@ -518,23 +565,36 @@ codeunit 60601 "Purchase Order Restriction"
                     //     PurchInvLine.CalcSums(Amount);
                     //     L_DayOrderAmount += PurchInvLine.Amount;
                     // end;
+                    // Clear(AmountFromILE);
+                    // L_ILE.Reset();
+                    // L_ILE.SetRange("Entry Type", L_ILE."Entry Type"::Purchase);
+                    // L_ILE.SetRange("Document Type", L_ILE."Document Type"::"Purchase Receipt");
+                    // L_ILE.SetRange("Parent Category", ItemCat);
+                    // // L_ILE.SetFilter("Posting Date", '%1..%2', Sdate, Edate);
+                    // if L_ILE.FindSet() then begin
+                    //     repeat
+                    //         PurchRcptHeader.Reset();
+                    //         PurchRcptHeader.SetRange("No.", L_ILE."Document No.");
+                    //         if PurchRcptHeader.FindFirst() then begin
+                    //             if PurchRcptHeader."Order Date" in [Sdate .. Edate] then begin
+                    //                 L_ILE.CalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
+                    //                 AmountFromILE := AmountFromILE + (L_ILE."Cost Amount (Actual)" + L_ILE."Cost Amount (Expected)");
+                    //             end;
+                    //         end;
+                    //     until L_ILE.Next() = 0;
+
+                    //     L_DayOrderAmount += AmountFromILE;
+                    // end;
                     Clear(AmountFromILE);
-                    L_ILE.Reset();
-                    L_ILE.SetRange("Entry Type", L_ILE."Entry Type"::Purchase);
-                    L_ILE.SetRange("Document Type", L_ILE."Document Type"::"Purchase Receipt");
-                    L_ILE.SetRange("Parent Category", ItemCat);
-                    // L_ILE.SetFilter("Posting Date", '%1..%2', Sdate, Edate);
-                    if L_ILE.FindSet() then begin
+                    L_PurchRcptLine.Reset();
+                    L_PurchRcptLine.SetRange(Type, L_PurchRcptLine.Type::Item);
+                    L_PurchRcptLine.SetRange("Parent Category", ItemCat);
+                    L_PurchRcptLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                    L_PurchRcptLine.SetFilter(Quantity, '>0');
+                    if L_PurchRcptLine.FindSet() then begin
                         repeat
-                            PurchRcptHeader.Reset();
-                            PurchRcptHeader.SetRange("No.", L_ILE."Document No.");
-                            if PurchRcptHeader.FindFirst() then begin
-                                if PurchRcptHeader."Order Date" in [Sdate .. Edate] then begin
-                                    L_ILE.CalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
-                                    AmountFromILE := AmountFromILE + (L_ILE."Cost Amount (Actual)" + L_ILE."Cost Amount (Expected)");
-                                end;
-                            end;
-                        until L_ILE.Next() = 0;
+                            AmountFromILE := AmountFromILE + L_PurchRcptLine."Unit Cost (LCY)" * L_PurchRcptLine.Quantity;
+                        until L_PurchRcptLine.Next() = 0;
 
                         L_DayOrderAmount += AmountFromILE;
                     end;
@@ -550,11 +610,16 @@ codeunit 60601 "Purchase Order Restriction"
 
                     CheckRemainingAmt(L_RemainingQuantity, 'ASICPMAMT', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Restriction Type", L_OrderAmount);
 
+                    //Quota Found
+                    IsQuotaExists := true;
+
                     //If not Error then Exit +++++
                     exit;
-                end;
+                end else
+                    IsQuotaExists := false;
             until L_MaxOrderQty.Next() = 0;
-        End;
+        End else
+            IsQuotaExists := false;
     end;
 
     procedure PerMonthAllVendorSelItemAmt(_PurchaseLine: Record "Purchase Line"; _PurchaseHeader: Record "Purchase Header"; ItemCat: code[20]; Sdate: date; Edate: Date)

@@ -227,6 +227,8 @@ page 60600 "Purchase Budget Summary"
         AmountFromILE: Decimal;
         L_ILE: Record "Item Ledger Entry";
         PurchRcptHeader: Record "Purch. Rcpt. Header";
+        L_PurchaseHeader: Record "Purchase Header";
+        L_PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
         Clear(CurrentMonthPurchase);
         Clear(CurrentMonthStartDate);
@@ -241,32 +243,50 @@ page 60600 "Purchase Budget Summary"
             PurchaseLine.SetRange("Parent Category", CategoryCode)
         else
             PurchaseLine.SetRange("Child Category", CategoryCode);
-        PurchaseLine.SetFilter("Order Date", '%1..%2', CurrentMonthStartDate, CurrentMonthEndDate);
+        PurchaseLine.SetFilter("Custom Order Date", '%1..%2', CurrentMonthStartDate, CurrentMonthEndDate);
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
         if PurchaseLine.FindSet() then begin
             PurchaseLine.CalcSums("Outstanding Amt. Ex. VAT (LCY)");
             CurrentMonthPurchase += PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
         end;
 
+
+        // Clear(AmountFromILE);
+        // L_ILE.Reset();
+        // L_ILE.SetRange("Entry Type", L_ILE."Entry Type"::Purchase);
+        // L_ILE.SetRange("Document Type", L_ILE."Document Type"::"Purchase Receipt");
+        // if P_Indentation = 1 then
+        //     L_ILE.SetRange("Parent Category", CategoryCode)
+        // else
+        //     L_ILE.SetRange("Child Category", CategoryCode);
+        // if L_ILE.FindSet() then begin
+        //     repeat
+        //         PurchRcptHeader.Reset();
+        //         PurchRcptHeader.SetRange("No.", L_ILE."Document No.");
+        //         if PurchRcptHeader.FindFirst() then begin
+        //             if PurchRcptHeader."Order Date" in [CurrentMonthStartDate .. CurrentMonthEndDate] then begin
+        //                 L_ILE.CalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
+        //                 AmountFromILE := AmountFromILE + (L_ILE."Cost Amount (Actual)" + L_ILE."Cost Amount (Expected)");
+        //             end;
+        //         end;
+        //     until L_ILE.Next() = 0;
+
+        //     CurrentMonthPurchase += AmountFromILE;
+        // end;
         Clear(AmountFromILE);
-        L_ILE.Reset();
-        L_ILE.SetRange("Entry Type", L_ILE."Entry Type"::Purchase);
-        L_ILE.SetRange("Document Type", L_ILE."Document Type"::"Purchase Receipt");
+        L_PurchRcptLine.Reset();
+        L_PurchRcptLine.SetRange(Type, L_PurchRcptLine.Type::Item);
+        //L_PurchRcptLine.SetFilter("Order No.", '<>%1', '0000111015'); //to exclude this orders
         if P_Indentation = 1 then
-            L_ILE.SetRange("Parent Category", CategoryCode)
+            L_PurchRcptLine.SetRange("Parent Category", CategoryCode)
         else
-            L_ILE.SetRange("Child Category", CategoryCode);
-        if L_ILE.FindSet() then begin
+            L_PurchRcptLine.SetRange("Child Category", CategoryCode);
+        L_PurchRcptLine.SetFilter("Order Date", '%1..%2', CurrentMonthStartDate, CurrentMonthEndDate);
+        L_PurchRcptLine.SetFilter(Quantity, '>0');
+        if L_PurchRcptLine.FindSet() then begin
             repeat
-                PurchRcptHeader.Reset();
-                PurchRcptHeader.SetRange("No.", L_ILE."Document No.");
-                if PurchRcptHeader.FindFirst() then begin
-                    if PurchRcptHeader."Order Date" in [CurrentMonthStartDate .. CurrentMonthEndDate] then begin
-                        L_ILE.CalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
-                        AmountFromILE := AmountFromILE + (L_ILE."Cost Amount (Actual)" + L_ILE."Cost Amount (Expected)");
-                    end;
-                end;
-            until L_ILE.Next() = 0;
+                AmountFromILE := AmountFromILE + L_PurchRcptLine."Unit Cost (LCY)" * L_PurchRcptLine.Quantity;
+            until L_PurchRcptLine.Next() = 0;
 
             CurrentMonthPurchase += AmountFromILE;
         end;
@@ -284,6 +304,7 @@ page 60600 "Purchase Budget Summary"
         AmountFromILE: Decimal;
         L_ILE: Record "Item Ledger Entry";
         PurchRcptHeader: Record "Purch. Rcpt. Header";
+        L_PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
         Clear(LastMonthPurchase);
         Clear(LastMonthStartDate);
@@ -298,35 +319,53 @@ page 60600 "Purchase Budget Summary"
             PurchaseLine.SetRange("Parent Category", CategoryCode)
         else
             PurchaseLine.SetRange("Child Category", CategoryCode);
-        PurchaseLine.SetFilter("Order Date", '%1..%2', LastMonthStartDate, LastMonthEndDate);
+        PurchaseLine.SetFilter("Custom Order Date", '%1..%2', LastMonthStartDate, LastMonthEndDate);
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
         if PurchaseLine.FindSet() then begin
             PurchaseLine.CalcSums("Outstanding Amt. Ex. VAT (LCY)");
             LastMonthPurchase += PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
         end;
 
+        // Clear(AmountFromILE);
+        // L_ILE.Reset();
+        // L_ILE.SetRange("Entry Type", L_ILE."Entry Type"::Purchase);
+        // L_ILE.SetRange("Document Type", L_ILE."Document Type"::"Purchase Receipt");
+        // if P_Indentation = 1 then
+        //     L_ILE.SetRange("Parent Category", CategoryCode)
+        // else
+        //     L_ILE.SetRange("Child Category", CategoryCode);
+        // if L_ILE.FindSet() then begin
+        //     repeat
+        //         PurchRcptHeader.Reset();
+        //         PurchRcptHeader.SetRange("No.", L_ILE."Document No.");
+        //         if PurchRcptHeader.FindFirst() then begin
+        //             if PurchRcptHeader."Order Date" in [LastMonthStartDate .. LastMonthEndDate] then begin
+        //                 L_ILE.CalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
+        //                 AmountFromILE := AmountFromILE + (L_ILE."Cost Amount (Actual)" + L_ILE."Cost Amount (Expected)");
+        //             end;
+        //         end;
+        //     until L_ILE.Next() = 0;
+
+        //     LastMonthPurchase += AmountFromILE;
+        // end;
+
         Clear(AmountFromILE);
-        L_ILE.Reset();
-        L_ILE.SetRange("Entry Type", L_ILE."Entry Type"::Purchase);
-        L_ILE.SetRange("Document Type", L_ILE."Document Type"::"Purchase Receipt");
+        L_PurchRcptLine.Reset();
+        L_PurchRcptLine.SetRange(Type, L_PurchRcptLine.Type::Item);
         if P_Indentation = 1 then
-            L_ILE.SetRange("Parent Category", CategoryCode)
+            L_PurchRcptLine.SetRange("Parent Category", CategoryCode)
         else
-            L_ILE.SetRange("Child Category", CategoryCode);
-        if L_ILE.FindSet() then begin
+            L_PurchRcptLine.SetRange("Child Category", CategoryCode);
+        L_PurchRcptLine.SetFilter("Order Date", '%1..%2', LastMonthStartDate, LastMonthEndDate);
+        L_PurchRcptLine.SetFilter(Quantity, '>0');
+        if L_PurchRcptLine.FindSet() then begin
             repeat
-                PurchRcptHeader.Reset();
-                PurchRcptHeader.SetRange("No.", L_ILE."Document No.");
-                if PurchRcptHeader.FindFirst() then begin
-                    if PurchRcptHeader."Order Date" in [LastMonthStartDate .. LastMonthEndDate] then begin
-                        L_ILE.CalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
-                        AmountFromILE := AmountFromILE + (L_ILE."Cost Amount (Actual)" + L_ILE."Cost Amount (Expected)");
-                    end;
-                end;
-            until L_ILE.Next() = 0;
+                AmountFromILE := AmountFromILE + L_PurchRcptLine."Unit Cost (LCY)" * L_PurchRcptLine.Quantity;
+            until L_PurchRcptLine.Next() = 0;
 
             LastMonthPurchase += AmountFromILE;
         end;
+
 
         if LastMonthPurchase > 0 then
             exit(LastMonthPurchase);
@@ -341,6 +380,7 @@ page 60600 "Purchase Budget Summary"
         AmountFromILE: Decimal;
         L_ILE: Record "Item Ledger Entry";
         PurchRcptHeader: Record "Purch. Rcpt. Header";
+        L_PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
         Clear(Last2MonthPurchase);
         Clear(Last2MonthStartDate);
@@ -355,32 +395,49 @@ page 60600 "Purchase Budget Summary"
             PurchaseLine.SetRange("Parent Category", CategoryCode)
         else
             PurchaseLine.SetRange("Child Category", CategoryCode);
-        PurchaseLine.SetFilter("Order Date", '%1..%2', Last2MonthStartDate, Last2MonthEndDate);
+        PurchaseLine.SetFilter("Custom Order Date", '%1..%2', Last2MonthStartDate, Last2MonthEndDate);
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
         if PurchaseLine.FindSet() then begin
             PurchaseLine.CalcSums("Outstanding Amt. Ex. VAT (LCY)");
             Last2MonthPurchase += PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
         end;
 
+        // Clear(AmountFromILE);
+        // L_ILE.Reset();
+        // L_ILE.SetRange("Entry Type", L_ILE."Entry Type"::Purchase);
+        // L_ILE.SetRange("Document Type", L_ILE."Document Type"::"Purchase Receipt");
+        // if P_Indentation = 1 then
+        //     L_ILE.SetRange("Parent Category", CategoryCode)
+        // else
+        //     L_ILE.SetRange("Child Category", CategoryCode);
+        // if L_ILE.FindSet() then begin
+        //     repeat
+        //         PurchRcptHeader.Reset();
+        //         PurchRcptHeader.SetRange("No.", L_ILE."Document No.");
+        //         if PurchRcptHeader.FindFirst() then begin
+        //             if PurchRcptHeader."Order Date" in [Last2MonthStartDate .. Last2MonthEndDate] then begin
+        //                 L_ILE.CalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
+        //                 AmountFromILE := AmountFromILE + (L_ILE."Cost Amount (Actual)" + L_ILE."Cost Amount (Expected)");
+        //             end;
+        //         end;
+        //     until L_ILE.Next() = 0;
+
+        //     Last2MonthPurchase += AmountFromILE;
+        // end;
+
         Clear(AmountFromILE);
-        L_ILE.Reset();
-        L_ILE.SetRange("Entry Type", L_ILE."Entry Type"::Purchase);
-        L_ILE.SetRange("Document Type", L_ILE."Document Type"::"Purchase Receipt");
+        L_PurchRcptLine.Reset();
+        L_PurchRcptLine.SetRange(Type, L_PurchRcptLine.Type::Item);
         if P_Indentation = 1 then
-            L_ILE.SetRange("Parent Category", CategoryCode)
+            L_PurchRcptLine.SetRange("Parent Category", CategoryCode)
         else
-            L_ILE.SetRange("Child Category", CategoryCode);
-        if L_ILE.FindSet() then begin
+            L_PurchRcptLine.SetRange("Child Category", CategoryCode);
+        L_PurchRcptLine.SetFilter("Order Date", '%1..%2', Last2MonthStartDate, Last2MonthEndDate);
+        L_PurchRcptLine.SetFilter(Quantity, '>0');
+        if L_PurchRcptLine.FindSet() then begin
             repeat
-                PurchRcptHeader.Reset();
-                PurchRcptHeader.SetRange("No.", L_ILE."Document No.");
-                if PurchRcptHeader.FindFirst() then begin
-                    if PurchRcptHeader."Order Date" in [Last2MonthStartDate .. Last2MonthEndDate] then begin
-                        L_ILE.CalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
-                        AmountFromILE := AmountFromILE + (L_ILE."Cost Amount (Actual)" + L_ILE."Cost Amount (Expected)");
-                    end;
-                end;
-            until L_ILE.Next() = 0;
+                AmountFromILE := AmountFromILE + L_PurchRcptLine."Unit Cost (LCY)" * L_PurchRcptLine.Quantity;
+            until L_PurchRcptLine.Next() = 0;
 
             Last2MonthPurchase += AmountFromILE;
         end;
