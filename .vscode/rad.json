@@ -1,1 +1,1 @@
-﻿{"Added":[],"Modified":[{"Id":60601,"Kind":11,"Name":"Purchase Order Restriction","Namespace":""},{"Id":60600,"Kind":12,"Name":"Purchase Budget Summary","Namespace":""}],"Removed":[{"Id":60605,"Kind":16,"Name":"Purchase line","Namespace":""}]}
+﻿{"Added":[{"Id":60607,"Kind":16,"Name":"ISQ Purchase Order Subform","Namespace":""}],"Modified":[],"Removed":[]}

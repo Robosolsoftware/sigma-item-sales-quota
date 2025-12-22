@@ -281,7 +281,7 @@ page 60600 "Purchase Budget Summary"
             L_PurchRcptLine.SetRange("Parent Category", CategoryCode)
         else
             L_PurchRcptLine.SetRange("Child Category", CategoryCode);
-        L_PurchRcptLine.SetFilter("Order Date", '%1..%2', CurrentMonthStartDate, CurrentMonthEndDate);
+        L_PurchRcptLine.SetFilter("Custom Order Date", '%1..%2', CurrentMonthStartDate, CurrentMonthEndDate);
         L_PurchRcptLine.SetFilter(Quantity, '>0');
         if L_PurchRcptLine.FindSet() then begin
             repeat
@@ -356,7 +356,7 @@ page 60600 "Purchase Budget Summary"
             L_PurchRcptLine.SetRange("Parent Category", CategoryCode)
         else
             L_PurchRcptLine.SetRange("Child Category", CategoryCode);
-        L_PurchRcptLine.SetFilter("Order Date", '%1..%2', LastMonthStartDate, LastMonthEndDate);
+        L_PurchRcptLine.SetFilter("Custom Order Date", '%1..%2', LastMonthStartDate, LastMonthEndDate);
         L_PurchRcptLine.SetFilter(Quantity, '>0');
         if L_PurchRcptLine.FindSet() then begin
             repeat
@@ -432,7 +432,7 @@ page 60600 "Purchase Budget Summary"
             L_PurchRcptLine.SetRange("Parent Category", CategoryCode)
         else
             L_PurchRcptLine.SetRange("Child Category", CategoryCode);
-        L_PurchRcptLine.SetFilter("Order Date", '%1..%2', Last2MonthStartDate, Last2MonthEndDate);
+        L_PurchRcptLine.SetFilter("Custom Order Date", '%1..%2', Last2MonthStartDate, Last2MonthEndDate);
         L_PurchRcptLine.SetFilter(Quantity, '>0');
         if L_PurchRcptLine.FindSet() then begin
             repeat

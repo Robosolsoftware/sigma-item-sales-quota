@@ -328,7 +328,7 @@ codeunit 60601 "Purchase Order Restriction"
                     L_PurchRcptLine.Reset();
                     L_PurchRcptLine.SetRange(Type, L_PurchRcptLine.Type::Item);
                     L_PurchRcptLine.SetRange("Parent Category", ItemCat);
-                    L_PurchRcptLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                    L_PurchRcptLine.SetFilter("Custom Order Date", '%1..%2', Sdate, Edate);
                     L_PurchRcptLine.SetFilter(Quantity, '>0');
                     if L_PurchRcptLine.FindSet() then begin
                         repeat
@@ -589,7 +589,7 @@ codeunit 60601 "Purchase Order Restriction"
                     L_PurchRcptLine.Reset();
                     L_PurchRcptLine.SetRange(Type, L_PurchRcptLine.Type::Item);
                     L_PurchRcptLine.SetRange("Parent Category", ItemCat);
-                    L_PurchRcptLine.SetFilter("Order Date", '%1..%2', Sdate, Edate);
+                    L_PurchRcptLine.SetFilter("Custom Order Date", '%1..%2', Sdate, Edate);
                     L_PurchRcptLine.SetFilter(Quantity, '>0');
                     if L_PurchRcptLine.FindSet() then begin
                         repeat
