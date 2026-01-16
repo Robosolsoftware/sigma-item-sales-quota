@@ -1,45 +1,50 @@
-query 60604 "PO Daywise order Amt"
+query 60604 "PO order Amt"
 {
+    querytype = Normal;
 
     elements
     {
-        dataitem(QueryElement1000000000; 38)
+        dataitem(Purchase_Line; "Purchase Line")
         {
+            column(Type; Type)
+            {
+
+            }
             column(Document_Type; "Document Type")
             {
+
             }
-            column(Doc_No; "No.")
+            column(Document_No_; "Document No.")
             {
+
+            }
+            column(Line_No_; "Line No.")
+            {
+
             }
             column(Buy_from_Vendor_No_; "Buy-from Vendor No.")
             {
-            }
-            column(Order_Date; "Order Date")
-            {
-            }
-            dataitem(QueryElement1000000001; 39)
-            {
-                DataItemLink = "Document Type" = "QueryElement1000000000"."Document Type", "Document No." = "QueryElement1000000000"."No.";
-                DataItemTableFilter = Type = FILTER(Item);
-                column(No; "No.")
-                {
-                }
-                //Azhar++
-                column(Line_No_; "Line No.")
-                {
 
-                }
-                column(Item_Category_Code; "Child Category")
-                {
+            }
+            column(Parent_Category; "Parent Category")
+            {
 
-                }
-                //Azhar--
-                column(Sum_Amt; "Line Amount")
-                {
-                    Method = Sum;
-                }
+            }
+            column(Custom_Order_Date; "Custom Order Date")
+            {
+
+            }
+            column(Outstanding_Amt__Ex__VAT__LCY_; "Outstanding Amt. Ex. VAT (LCY)")
+            {
+                Method = Sum;
             }
         }
     }
+
+    trigger OnBeforeOpen()
+    begin
+        SetFilter(Type, '%1', Type::Item);
+        SetFilter(Outstanding_Amt__Ex__VAT__LCY_, '>%1', 0);
+    end;
 }
 

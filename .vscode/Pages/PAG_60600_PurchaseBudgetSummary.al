@@ -276,12 +276,12 @@ page 60600 "Purchase Budget Summary"
         Clear(AmountFromILE);
         L_PurchRcptLine.Reset();
         L_PurchRcptLine.SetRange(Type, L_PurchRcptLine.Type::Item);
-        //L_PurchRcptLine.SetFilter("Order No.", '<>%1', '0000111015'); //to exclude this orders
         if P_Indentation = 1 then
             L_PurchRcptLine.SetRange("Parent Category", CategoryCode)
         else
             L_PurchRcptLine.SetRange("Child Category", CategoryCode);
-        L_PurchRcptLine.SetFilter("Custom Order Date", '%1..%2', CurrentMonthStartDate, CurrentMonthEndDate);
+        //L_PurchRcptLine.SetFilter("Custom Order Date", '%1..%2', CurrentMonthStartDate, CurrentMonthEndDate);
+        L_PurchRcptLine.SetFilter("Budget Receipt Date", '%1..%2', CurrentMonthStartDate, CurrentMonthEndDate);
         L_PurchRcptLine.SetFilter(Quantity, '>0');
         if L_PurchRcptLine.FindSet() then begin
             repeat
@@ -356,7 +356,8 @@ page 60600 "Purchase Budget Summary"
             L_PurchRcptLine.SetRange("Parent Category", CategoryCode)
         else
             L_PurchRcptLine.SetRange("Child Category", CategoryCode);
-        L_PurchRcptLine.SetFilter("Custom Order Date", '%1..%2', LastMonthStartDate, LastMonthEndDate);
+        //L_PurchRcptLine.SetFilter("Custom Order Date", '%1..%2', LastMonthStartDate, LastMonthEndDate);
+        L_PurchRcptLine.SetFilter("Budget Receipt Date", '%1..%2', LastMonthStartDate, LastMonthEndDate);
         L_PurchRcptLine.SetFilter(Quantity, '>0');
         if L_PurchRcptLine.FindSet() then begin
             repeat
@@ -432,7 +433,8 @@ page 60600 "Purchase Budget Summary"
             L_PurchRcptLine.SetRange("Parent Category", CategoryCode)
         else
             L_PurchRcptLine.SetRange("Child Category", CategoryCode);
-        L_PurchRcptLine.SetFilter("Custom Order Date", '%1..%2', Last2MonthStartDate, Last2MonthEndDate);
+        //L_PurchRcptLine.SetFilter("Custom Order Date", '%1..%2', Last2MonthStartDate, Last2MonthEndDate);
+        L_PurchRcptLine.SetFilter("Budget Receipt Date", '%1..%2', Last2MonthStartDate, Last2MonthEndDate);
         L_PurchRcptLine.SetFilter(Quantity, '>0');
         if L_PurchRcptLine.FindSet() then begin
             repeat

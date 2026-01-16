@@ -10,6 +10,11 @@ pageextension 60606 "ISQ Posted Puh Receipt Lines" extends "Posted Purchase Rece
                 ApplicationArea = All;
                 Editable = false;
             }
+            field("Budget Receipt Date"; Rec."Budget Receipt Date")
+            {
+                ApplicationArea = All;
+                Editable = false;
+            }
             field("Unit Cost (LCY)"; Rec."Unit Cost (LCY)")
             {
                 ApplicationArea = All;
@@ -26,6 +31,20 @@ pageextension 60606 "ISQ Posted Puh Receipt Lines" extends "Posted Purchase Rece
     actions
     {
         // Add changes to page actions here
+        addafter("&Line")
+        {
+            // action("Update Date")
+            // {
+            //     ApplicationArea = All;
+
+            //     trigger OnAction()
+            //     var
+            //         L_PurcRecpt: Codeunit "Purchase Order Restriction";
+            //     begin
+            //         L_PurcRecpt.UpdateDate();
+            //     end;
+            // }
+        }
     }
 
     var
