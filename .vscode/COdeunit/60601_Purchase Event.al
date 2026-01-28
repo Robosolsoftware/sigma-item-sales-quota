@@ -7,21 +7,6 @@ codeunit 60601 "Purchase Order Restriction"
 
     end;
 
-    procedure UpdateDate()
-    var
-        L_PurcRecpt: Record "Purch. Rcpt. Line";
-    begin
-        L_PurcRecpt.Reset();
-        if L_PurcRecpt.FindSet() then begin
-            repeat
-                L_PurcRecpt.CalcFields("Custom Order Date");
-                L_PurcRecpt."Budget Receipt Date" := L_PurcRecpt."Custom Order Date";
-                L_PurcRecpt.Modify();
-            until L_PurcRecpt.Next() = 0;
-        end;
-    end;
-
-
     var
         myInt: Integer;
         WarningtypeOpion: Text;
@@ -147,7 +132,7 @@ codeunit 60601 "Purchase Order Restriction"
     var
         RecUserSetup: Record "User Setup";
     begin
-        if ((PurchLine."Line Amount" <> 0) AND (PurchLine."Document Type" = PurchLine."Document Type"::Order)) then begin
+        if ((PurchLine."Outstanding Amt. Ex. VAT (LCY)" <> 0) AND (PurchLine."Document Type" = PurchLine."Document Type"::Order) AND (PurchLine."Qty. to Receive" > 0)) then begin
             IF RecUserSetup.GET(USERID) THEN BEGIN
                 IF NOT RecUserSetup."PO Override MaxQty Calculation" THEN BEGIN
                     CheckMaxOrderamt(PurchLine, G_CalledFrom::Post);
@@ -265,12 +250,12 @@ codeunit 60601 "Purchase Order Restriction"
         end;
 
         //+++All Vendor Selected Item Category+++
-        L_QuotaFound := PerMonthAllVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Parent Category", CurrentMonthStartDateAmt, EndDateAmt);
+        L_QuotaFound := PerMonthAllVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Parent Category", CurrentMonthStartDateAmt, EndDateAmt, _CalledFrom);
 
 
         //+++Vendor Selected Item Category+++
         if L_QuotaFound = false then
-            L_QuotaFound := PerMonthSelVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Parent Category", CurrentMonthStartDateAmt, EndDateAmt);
+            L_QuotaFound := PerMonthSelVendorSelItemCatAmt(P_PurchaseLine, PurchaseHeader, RecitemAmt."Parent Category", CurrentMonthStartDateAmt, EndDateAmt, _CalledFrom);
 
         //If Quota Not Found then Exit
         if (not L_QuotaFound) AND (P_PurchaseLine.Type = P_PurchaseLine.Type::Item) then
@@ -278,12 +263,12 @@ codeunit 60601 "Purchase Order Restriction"
 
     end;
 
-    procedure PerMonthAllVendorSelItemCatAmt(_PurchaseLine: Record "Purchase Line"; _PurchaseHeader: Record "Purchase Header"; ItemCat: code[20]; Sdate: date; Edate: Date) IsQuotaExists: Boolean
+    procedure PerMonthAllVendorSelItemCatAmt(_PurchaseLine: Record "Purchase Line"; _PurchaseHeader: Record "Purchase Header"; ItemCat: code[20]; Sdate: date; Edate: Date; _CalledFrom: Option Creation,Post) IsQuotaExists: Boolean
     var
         L_MaxOrderQty: Record 60602;
         L_DayOrderAmount: Decimal;
         L_RemainingQuantity: Decimal;
-        PurchaseLine: Record "Purchase Line";
+        L_PurchaseLine: Record "Purchase Line";
         PurchInvLine: Record "Purch. Inv. Line";
         L_OrderAmount: Decimal;
         L_ILE: Record "Item Ledger Entry";
@@ -322,21 +307,48 @@ codeunit 60601 "Purchase Order Restriction"
                     Query_POAmount.SetFilter(Query_POAmount.Document_No_, '<>%1', _PurchaseLine."Document No.");
                     Query_POAmount.SetRange(Query_POAmount.Parent_Category, ItemCat);
                     Query_POAmount.SetFilter(Query_POAmount.Custom_Order_Date, '%1..%2', Sdate, Edate);
+                    Query_POAmount.SetRange(Query_POAmount.Type, Query_POAmount.Type::Item);
                     Query_POAmount.Open();
                     while Query_POAmount.Read() do begin
                         L_DayOrderAmount += Query_POAmount.Outstanding_Amt__Ex__VAT__LCY_;
                     end;
 
-                    //--Calculate Same Order Amount but if same item in Different line++
-                    Clear(Query_POAmount);
-                    Query_POAmount.SetRange(Query_POAmount.Document_Type, _PurchaseLine."Document Type");
-                    Query_POAmount.SetRange(Query_POAmount.Document_No_, _PurchaseLine."Document No.");
-                    Query_POAmount.SetFilter(Query_POAmount.Line_No_, '<>%1', _PurchaseLine."Line No.");
-                    Query_POAmount.SetRange(Query_POAmount.Parent_Category, ItemCat);
-                    Query_POAmount.SetFilter(Query_POAmount.Custom_Order_Date, '%1..%2', Sdate, Edate);
-                    Query_POAmount.Open();
-                    while Query_POAmount.Read() do begin
-                        L_DayOrderAmount += Query_POAmount.Outstanding_Amt__Ex__VAT__LCY_;
+                    if _CalledFrom = _CalledFrom::Creation then begin
+                        //--Calculate Same Order Amount but if same item in Different line++
+                        Clear(Query_POAmount);
+                        Query_POAmount.SetRange(Query_POAmount.Document_Type, _PurchaseLine."Document Type");
+                        Query_POAmount.SetRange(Query_POAmount.Document_No_, _PurchaseLine."Document No.");
+                        Query_POAmount.SetFilter(Query_POAmount.Line_No_, '<>%1', _PurchaseLine."Line No.");
+                        Query_POAmount.SetRange(Query_POAmount.Parent_Category, ItemCat);
+                        Query_POAmount.SetFilter(Query_POAmount.Custom_Order_Date, '%1..%2', Sdate, Edate);
+                        Query_POAmount.SetRange(Query_POAmount.Type, Query_POAmount.Type::Item);
+                        Query_POAmount.Open();
+                        while Query_POAmount.Read() do begin
+                            L_DayOrderAmount += Query_POAmount.Outstanding_Amt__Ex__VAT__LCY_;
+                        end;
+
+                        //Current Line Amount
+                        Clear(L_OrderAmount);
+                        L_OrderAmount := _PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
+
+                    end else begin
+                        L_PurchaseLine.Reset();
+                        L_PurchaseLine.SetRange("Document Type", _PurchaseLine."Document Type");
+                        L_PurchaseLine.SetRange("Document No.", _PurchaseLine."Document No.");
+                        L_PurchaseLine.SetRange(Type, L_PurchaseLine.Type::Item);
+                        L_PurchaseLine.SetFilter("Line No.", '<>%1', _PurchaseLine."Line No.");
+                        L_PurchaseLine.SetRange("Parent Category", ItemCat);
+                        L_PurchaseLine.SetFilter("Qty. to Receive", '>%1', 0);
+                        if L_PurchaseLine.FindSet() then begin
+                            repeat
+                                L_DayOrderAmount += L_PurchaseLine."Qty. to Receive" * L_PurchaseLine."Unit Cost (LCY)";
+                            until L_PurchaseLine.Next() = 0
+                        end;
+
+                        //Current Line Amount
+                        Clear(L_OrderAmount);
+                        L_OrderAmount := _PurchaseLine."Qty. to Receive" * _PurchaseLine."Unit Cost (LCY)";
+
                     end;
                     #EndRegion Order Amount from PO++
 
@@ -356,18 +368,13 @@ codeunit 60601 "Purchase Order Restriction"
                     end;
                     #EndRegion Order Amount From Recpt Line++
 
-                    //Current Line Amount
-                    Clear(L_OrderAmount);
-                    L_OrderAmount := _PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
-
-
                     //Calculate Ramaining amount++
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderAmount;
                     if L_RemainingQuantity <= 0 then
                         L_RemainingQuantity := 0;
 
                     //+++
-                    CheckRemainingAmt(L_RemainingQuantity, 'ASICPMAMT', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Restriction Type", L_OrderAmount);
+                    CheckRemainingAmt(L_RemainingQuantity, 'ASICPMAMT', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Restriction Type", L_OrderAmount, _CalledFrom);
 
                     //Quota Found
                     IsQuotaExists := true;
@@ -381,12 +388,12 @@ codeunit 60601 "Purchase Order Restriction"
             IsQuotaExists := false;
     end;
 
-    procedure PerMonthSelVendorSelItemCatAmt(_PurchaseLine: Record "Purchase Line"; _PurchaseHeader: Record "Purchase Header"; ItemCat: code[20]; Sdate: date; Edate: Date) IsQuotaExists: Boolean
+    procedure PerMonthSelVendorSelItemCatAmt(_PurchaseLine: Record "Purchase Line"; _PurchaseHeader: Record "Purchase Header"; ItemCat: code[20]; Sdate: date; Edate: Date; _CalledFrom: Option Creation,Post) IsQuotaExists: Boolean
     var
         L_MaxOrderQty: Record 60602;
         L_DayOrderAmount: Decimal;
         L_RemainingQuantity: Decimal;
-        PurchaseLine: Record "Purchase Line";
+        L_PurchaseLine: Record "Purchase Line";
         PurchInvLine: Record "Purch. Inv. Line";
         L_OrderAmount: Decimal;
         L_ILE: Record "Item Ledger Entry";
@@ -428,24 +435,51 @@ codeunit 60601 "Purchase Order Restriction"
                     Query_POAmount.SetRange(Query_POAmount.Buy_from_Vendor_No_, _PurchaseLine."Buy-from Vendor No.");
                     Query_POAmount.SetRange(Query_POAmount.Parent_Category, ItemCat);
                     Query_POAmount.SetFilter(Query_POAmount.Custom_Order_Date, '%1..%2', Sdate, Edate);
+                    Query_POAmount.SetRange(Query_POAmount.Type, Query_POAmount.Type::Item);
                     Query_POAmount.Open();
                     while Query_POAmount.Read() do begin
                         L_DayOrderAmount += Query_POAmount.Outstanding_Amt__Ex__VAT__LCY_;
                     end;
 
-                    //--Calculate Same Order Amount but if same item in Different line++
-                    Clear(Query_POAmount);
-                    Query_POAmount.SetRange(Query_POAmount.Document_Type, _PurchaseLine."Document Type");
-                    Query_POAmount.SetRange(Query_POAmount.Document_No_, _PurchaseLine."Document No.");
-                    Query_POAmount.SetFilter(Query_POAmount.Line_No_, '<>%1', _PurchaseLine."Line No.");
-                    Query_POAmount.SetRange(Query_POAmount.Buy_from_Vendor_No_, _PurchaseLine."Buy-from Vendor No.");
-                    Query_POAmount.SetRange(Query_POAmount.Parent_Category, ItemCat);
-                    Query_POAmount.SetFilter(Query_POAmount.Custom_Order_Date, '%1..%2', Sdate, Edate);
-                    Query_POAmount.Open();
-                    while Query_POAmount.Read() do begin
-                        L_DayOrderAmount += Query_POAmount.Outstanding_Amt__Ex__VAT__LCY_;
-                    end;
+                    if _CalledFrom = _CalledFrom::Creation then begin
+                        //--Calculate Same Order Amount but if same item in Different line++
+                        Clear(Query_POAmount);
+                        Query_POAmount.SetRange(Query_POAmount.Document_Type, _PurchaseLine."Document Type");
+                        Query_POAmount.SetRange(Query_POAmount.Document_No_, _PurchaseLine."Document No.");
+                        Query_POAmount.SetFilter(Query_POAmount.Line_No_, '<>%1', _PurchaseLine."Line No.");
+                        Query_POAmount.SetRange(Query_POAmount.Buy_from_Vendor_No_, _PurchaseLine."Buy-from Vendor No.");
+                        Query_POAmount.SetRange(Query_POAmount.Parent_Category, ItemCat);
+                        Query_POAmount.SetFilter(Query_POAmount.Custom_Order_Date, '%1..%2', Sdate, Edate);
+                        Query_POAmount.SetRange(Query_POAmount.Type, Query_POAmount.Type::Item);
+                        Query_POAmount.Open();
+                        while Query_POAmount.Read() do begin
+                            L_DayOrderAmount += Query_POAmount.Outstanding_Amt__Ex__VAT__LCY_;
+                        end;
 
+                        //Current Line Amount
+                        Clear(L_OrderAmount);
+                        L_OrderAmount := _PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
+
+                    end else begin
+                        L_PurchaseLine.Reset();
+                        L_PurchaseLine.SetRange("Document Type", _PurchaseLine."Document Type");
+                        L_PurchaseLine.SetRange("Document No.", _PurchaseLine."Document No.");
+                        L_PurchaseLine.SetRange(Type, L_PurchaseLine.Type::Item);
+                        L_PurchaseLine.SetFilter("Line No.", '<>%1', _PurchaseLine."Line No.");
+                        L_PurchaseLine.SetRange("Buy-from Vendor No.", _PurchaseLine."Buy-from Vendor No.");
+                        L_PurchaseLine.SetRange("Parent Category", ItemCat);
+                        L_PurchaseLine.SetFilter("Qty. to Receive", '>%1', 0);
+                        if L_PurchaseLine.FindSet() then begin
+                            repeat
+                                L_DayOrderAmount += L_PurchaseLine."Qty. to Receive" * L_PurchaseLine."Unit Cost (LCY)";
+                            until L_PurchaseLine.Next() = 0
+                        end;
+
+                        //Current Line Amount
+                        Clear(L_OrderAmount);
+                        L_OrderAmount := _PurchaseLine."Qty. to Receive" * _PurchaseLine."Unit Cost (LCY)";
+
+                    end;
                     #EndRegion Order Amount from PO++
 
                     #Region Order Amount From Recpt Line++
@@ -465,16 +499,13 @@ codeunit 60601 "Purchase Order Restriction"
                     end;
                     #EndRegion Order Amount From Recpt Line++
 
-                    //Current Line Amount
-                    L_OrderAmount := _PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
-
                     //Calculate Ramaining amount++
                     L_RemainingQuantity := L_MaxOrderQty."Maximum Quantity" - L_DayOrderAmount;
                     if L_RemainingQuantity <= 0 then
                         L_RemainingQuantity := 0;
 
                     //++
-                    CheckRemainingAmt(L_RemainingQuantity, 'ASICPMAMT', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Restriction Type", L_OrderAmount);
+                    CheckRemainingAmt(L_RemainingQuantity, 'ASICPMAMT', WarningtypeOpion, L_MaxOrderQty."Maximum Quantity", L_MaxOrderQty."Restriction Type", L_OrderAmount, _CalledFrom);
 
                     //Quota Found
                     IsQuotaExists := true;
@@ -488,15 +519,26 @@ codeunit 60601 "Purchase Order Restriction"
             IsQuotaExists := false;
     end;
 
-    procedure CheckRemainingAmt(RemAmt: Decimal; Errcode: code[20]; WarningtypeOpion: Text; _TotalMaxAmount: Decimal; _QuantityRestriction: Option "Per Day","Per Order","Per Month"; _OrderAmount: Decimal)
+    procedure CheckRemainingAmt(RemAmt: Decimal; Errcode: code[20]; WarningtypeOpion: Text; _TotalMaxAmount: Decimal; _QuantityRestriction: Option "Per Day","Per Order","Per Month"; _OrderAmount: Decimal; _CalledFrom: Option Creation,Post)
     var
     begin
         if _OrderAmount > RemAmt then begin
-            if WarningtypeOpion = 'error' then
-                Error('Remaining Amount is £%3. Maximum Amount allowed is: £%1 %2', _TotalMaxAmount, _QuantityRestriction, RemAmt)
-            else begin
-                Message('Remaining Amount is £%3. Maximum Amount allowed is: £%1 %2', _TotalMaxAmount, _QuantityRestriction, RemAmt);
-                exit;
+            if _CalledFrom = _CalledFrom::Creation then begin
+                if WarningtypeOpion = 'error' then
+                    Error('Remaining Amount is £%3. Maximum Amount allowed is: £%1 %2', _TotalMaxAmount, _QuantityRestriction, RemAmt)
+                else begin
+                    Message('Remaining Amount is £%3. Maximum Amount allowed is: £%1 %2', _TotalMaxAmount, _QuantityRestriction, RemAmt);
+                    exit;
+                end;
+            end else begin
+                if _CalledFrom = _CalledFrom::Post then begin
+                    if WarningtypeOpion = 'error' then
+                        Error('There is no purchase Budget left, please contact the Buyer.')
+                    else begin
+                        Message('There is no purchase Budget left, please contact the Buyer.');
+                        exit;
+                    end;
+                end;
             end;
         end;
     end;
