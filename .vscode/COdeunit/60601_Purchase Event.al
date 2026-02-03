@@ -197,55 +197,19 @@ codeunit 60601 "Purchase Order Restriction"
 
 
         if _CalledFrom = _CalledFrom::Creation then begin
-            //StartDateEndDateCalculation
-            currentMonthAmt := Date2DMY(PurchaseHeader."Order Date", 2);
-            CurrentYearAmt := Date2DMY(PurchaseHeader."Order Date", 3);
-            if currentMonthAmt > 9 then
-                CurrentMonth_TextAmt := Format(currentMonthAmt)
-            else
-                CurrentMonth_TextAmt := '0' + Format(currentMonthAmt);
-            Evaluate(CurrentMonthStartDateAmt, '01' + CurrentMonth_TextAmt + Format(CurrentYearAmt));
-            //CurrentMonthStartDate--
-
-            //EndDate++
-            EndDateAmt := CalcDate('+1M', CurrentMonthStartDateAmt);
-            EndDateAmt := CalcDate('-1D', EndDateAmt);
-            //EndDate--
+            CurrentMonthStartDateAmt := StartOfMonthDate(PurchaseHeader."Order Date");
+            EndDateAmt := EndOfMonthDate(PurchaseHeader."Order Date");
         end else begin
             if _CalledFrom = _CalledFrom::Post then begin
-                //StartDateEndDateCalculation
                 if (IsSameMonth(PurchaseHeader."Order Date", WorkDate()) = true) OR (IsBeforeMonth(PurchaseHeader."Order Date", WorkDate()) = true) then begin
-                    currentMonthAmt := Date2DMY(PurchaseHeader."Order Date", 2);
-                    CurrentYearAmt := Date2DMY(PurchaseHeader."Order Date", 3);
-                    if currentMonthAmt > 9 then
-                        CurrentMonth_TextAmt := Format(currentMonthAmt)
-                    else
-                        CurrentMonth_TextAmt := '0' + Format(currentMonthAmt);
-                    Evaluate(CurrentMonthStartDateAmt, '01' + CurrentMonth_TextAmt + Format(CurrentYearAmt));
-                    //CurrentMonthStartDate--
-
-                    //EndDate++
-                    EndDateAmt := CalcDate('+1M', CurrentMonthStartDateAmt);
-                    EndDateAmt := CalcDate('-1D', EndDateAmt);
-                    //EndDate--
+                    CurrentMonthStartDateAmt := StartOfMonthDate(PurchaseHeader."Order Date");
+                    EndDateAmt := EndOfMonthDate(PurchaseHeader."Order Date");
                 end else begin
                     if IsAfterMonth(PurchaseHeader."Order Date", WorkDate()) = true then begin
-                        currentMonthAmt := Date2DMY(WorkDate(), 2);
-                        CurrentYearAmt := Date2DMY(WorkDate(), 3);
-                        if currentMonthAmt > 9 then
-                            CurrentMonth_TextAmt := Format(currentMonthAmt)
-                        else
-                            CurrentMonth_TextAmt := '0' + Format(currentMonthAmt);
-                        Evaluate(CurrentMonthStartDateAmt, '01' + CurrentMonth_TextAmt + Format(CurrentYearAmt));
-                        //CurrentMonthStartDate--
-
-                        //EndDate++
-                        EndDateAmt := CalcDate('+1M', CurrentMonthStartDateAmt);
-                        EndDateAmt := CalcDate('-1D', EndDateAmt);
-                        //EndDate--
+                        CurrentMonthStartDateAmt := StartOfMonthDate(WorkDate());
+                        EndDateAmt := EndOfMonthDate(WorkDate());
                     end;
                 end;
-
             end;
         end;
 
@@ -261,6 +225,46 @@ codeunit 60601 "Purchase Order Restriction"
         if (not L_QuotaFound) AND (P_PurchaseLine.Type = P_PurchaseLine.Type::Item) then
             Error('Purchase budget not Found for order number %1 and Line number %2', P_PurchaseLine."Document No.", P_PurchaseLine."Line No.");
 
+    end;
+
+    // Returns the first day of the month for a Date
+    local procedure StartOfMonthDate(D: Date): Date
+    var
+        DayVal: Integer;
+        MonthVal: Integer;
+        YearVal: Integer;
+    begin
+        if D = 0D then
+            exit(0D);
+
+        DayVal := Date2DMY(D, 1);
+        MonthVal := Date2DMY(D, 2);
+        YearVal := Date2DMY(D, 3);
+
+        exit(DMY2Date(1, MonthVal, YearVal));
+    end;
+
+    // Returns the last day of the month for a Date
+    local procedure EndOfMonthDate(D: Date): Date
+    var
+        DayVal: Integer;
+        MonthVal: Integer;
+        YearVal: Integer;
+        FirstOfNextMonth: Date;
+    begin
+        if D = 0D then
+            exit(0D);
+
+        DayVal := Date2DMY(D, 1);
+        MonthVal := Date2DMY(D, 2);
+        YearVal := Date2DMY(D, 3);
+
+        if MonthVal = 12 then
+            FirstOfNextMonth := DMY2Date(1, 1, YearVal + 1)
+        else
+            FirstOfNextMonth := DMY2Date(1, MonthVal + 1, YearVal);
+
+        exit(FirstOfNextMonth - 1);
     end;
 
     procedure PerMonthAllVendorSelItemCatAmt(_PurchaseLine: Record "Purchase Line"; _PurchaseHeader: Record "Purchase Header"; ItemCat: code[20]; Sdate: date; Edate: Date; _CalledFrom: Option Creation,Post) IsQuotaExists: Boolean
@@ -299,7 +303,6 @@ codeunit 60601 "Purchase Order Restriction"
                 WarningtypeOpion := Format(L_MaxOrderQty."Warning Type");
                 // Check Date Range++
                 if (L_MaxOrderQty."Start Date" <= _PurchaseHeader."Order Date") and (L_MaxOrderQty."End Date" >= _PurchaseHeader."Order Date") then begin
-
                     #Region  Order Amount from PO++
                     Clear(L_DayOrderAmount);
                     Clear(Query_POAmount);
@@ -330,8 +333,22 @@ codeunit 60601 "Purchase Order Restriction"
                         //Current Line Amount
                         Clear(L_OrderAmount);
                         L_OrderAmount := _PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
-
                     end else begin
+                        //Only Item which are received++
+                        L_PurchaseLine.Reset();
+                        L_PurchaseLine.SetRange("Document Type", _PurchaseLine."Document Type");
+                        L_PurchaseLine.SetRange("Document No.", _PurchaseLine."Document No.");
+                        L_PurchaseLine.SetRange(Type, L_PurchaseLine.Type::Item);
+                        L_PurchaseLine.SetFilter("Line No.", '<>%1', _PurchaseLine."Line No.");
+                        L_PurchaseLine.SetRange("Parent Category", ItemCat);
+                        L_PurchaseLine.SetFilter("Qty. to Receive", '%1', 0);
+                        if L_PurchaseLine.FindSet() then begin
+                            repeat
+                                L_DayOrderAmount += L_PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
+                            until L_PurchaseLine.Next() = 0
+                        end;
+
+                        //Only Item which are trying to receive++
                         L_PurchaseLine.Reset();
                         L_PurchaseLine.SetRange("Document Type", _PurchaseLine."Document Type");
                         L_PurchaseLine.SetRange("Document No.", _PurchaseLine."Document No.");
@@ -348,7 +365,6 @@ codeunit 60601 "Purchase Order Restriction"
                         //Current Line Amount
                         Clear(L_OrderAmount);
                         L_OrderAmount := _PurchaseLine."Qty. to Receive" * _PurchaseLine."Unit Cost (LCY)";
-
                     end;
                     #EndRegion Order Amount from PO++
 
@@ -461,12 +477,27 @@ codeunit 60601 "Purchase Order Restriction"
                         L_OrderAmount := _PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
 
                     end else begin
+                        //Only Item which are received++
                         L_PurchaseLine.Reset();
                         L_PurchaseLine.SetRange("Document Type", _PurchaseLine."Document Type");
                         L_PurchaseLine.SetRange("Document No.", _PurchaseLine."Document No.");
                         L_PurchaseLine.SetRange(Type, L_PurchaseLine.Type::Item);
                         L_PurchaseLine.SetFilter("Line No.", '<>%1', _PurchaseLine."Line No.");
-                        L_PurchaseLine.SetRange("Buy-from Vendor No.", _PurchaseLine."Buy-from Vendor No.");
+                        L_PurchaseLine.SetRange("Parent Category", ItemCat);
+                        L_PurchaseLine.SetFilter("Qty. to Receive", '%1', 0);
+                        if L_PurchaseLine.FindSet() then begin
+                            repeat
+                                L_DayOrderAmount += L_PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
+                            until L_PurchaseLine.Next() = 0
+                        end;
+
+
+                        //Only Item which are trying to receive++
+                        L_PurchaseLine.Reset();
+                        L_PurchaseLine.SetRange("Document Type", _PurchaseLine."Document Type");
+                        L_PurchaseLine.SetRange("Document No.", _PurchaseLine."Document No.");
+                        L_PurchaseLine.SetRange(Type, L_PurchaseLine.Type::Item);
+                        L_PurchaseLine.SetFilter("Line No.", '<>%1', _PurchaseLine."Line No.");
                         L_PurchaseLine.SetRange("Parent Category", ItemCat);
                         L_PurchaseLine.SetFilter("Qty. to Receive", '>%1', 0);
                         if L_PurchaseLine.FindSet() then begin
