@@ -163,6 +163,24 @@ page 60606 "Purchase Quota By Amount"
                 {
                     ApplicationArea = all;
                     Caption = 'Maximum Amount';
+
+                    trigger OnValidate()
+                    var
+                        L_PurchBudgetSummary: Record "Purchase Budget Summary";
+                        L_ItemCategory: Record "Item Category";
+                    begin
+
+                        CurrMonthPurch := GetPurchaseForCurrentMonth(Rec."Item Code", Rec."Start Date", Rec."End Date");
+                        CMBudget := xRec."Maximum Quantity";
+                        RemAmt := CMBudget - CurrMonthPurch;
+                        DiffAmt := xRec."Maximum Quantity" - rec."Maximum Quantity";
+
+                        if RemAmt < DiffAmt then begin
+                            Error('You cannot reduce the amount more than the purchase made for the Item category code %1 within the period %2 to %3', rec."Item Code", rec."Start Date", rec."End Date")
+                        end;
+
+                    end;
+                    // FIN-107
                 }
                 field("Amount Restriction"; Rec."Quantity Restriction")
                 {
@@ -315,8 +333,11 @@ page 60606 "Purchase Quota By Amount"
         StartingDateFilter: Text[30];
         NoOfMonthEdit: Boolean;
         ItemCate: Page "Item Categories";
-
-
+        CurrMonthPurch: Decimal;
+        CMBudget: Decimal;
+        RemAmt: Decimal;
+        DiffAmt: Decimal;
+    // FIN-107
     trigger OnOpenPage()
     var
     begin
@@ -340,19 +361,71 @@ page 60606 "Purchase Quota By Amount"
     end;
 
     /* procedure getitemfilterCustomer(GlobalFIlterSalesCOde: Text)
-     var
-     begin
-         SalesCodeFilter := GlobalFIlterSalesCOde;
+        var
+        begin
+        SalesCodeFilter := GlobalFIlterSalesCOde;
 
-     end;*/
+        end;*/
 
     /*
     local procedure DefaultRestriction()
     var
     begin
-        Rec.Validate("Restriction Type", Rec."Restriction Type"::"By Amount");
-        //CurrPage.Update();
-        //Rec.Modify();
+            Rec.Validate("Restriction Type", Rec."Restriction Type"::"By Amount");
+            //CurrPage.Update();
+            //Rec.Modify();
     end;
-    */
+        */
+
+    // local procedure GetBudgetFromPurchQuota(CategoryCode: Code[20]; MonthStartDate: Date; MonthEndDate: Date): Decimal
+    // var
+    //     L_PurchaseQuotaByAmt: Record "Purchase Quota";
+    // begin
+    //     L_PurchaseQuotaByAmt.Reset();
+    //     L_PurchaseQuotaByAmt.SetRange("Purchase Type", L_PurchaseQuotaByAmt."Purchase Type"::"All Vendor");
+    //     L_PurchaseQuotaByAmt.SetRange("Item Type", L_PurchaseQuotaByAmt."Item Type"::"Item Category");
+    //     L_PurchaseQuotaByAmt.SetRange("Item Code", CategoryCode);
+    //     if L_PurchaseQuotaByAmt.FindSet() then begin
+    //         repeat
+    //             if (Today >= L_PurchaseQuotaByAmt."Start Date") and (Today <= L_PurchaseQuotaByAmt."End Date") then
+    //                 exit(L_PurchaseQuotaByAmt."Maximum Quantity");
+    //         until L_PurchaseQuotaByAmt.Next() = 0;
+    //     end;
+    // end;
+
+    local procedure GetPurchaseForCurrentMonth(CategoryCode: Code[20]; MonthStartDate: Date; MonthEndDate: Date): Decimal
+    var
+        CurrentMonthPurchase: Decimal;
+        PurchaseLine: Record "Purchase Line";
+        AmountFromILE: Decimal;
+        L_PurchRcptLine: Record "Purch. Rcpt. Line";
+    begin
+
+        PurchaseLine.Reset();
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Parent Category", CategoryCode);
+        PurchaseLine.SetFilter("Custom Order Date", '%1..%2', MonthStartDate, MonthEndDate);
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        if PurchaseLine.FindSet() then begin
+            PurchaseLine.CalcSums("Outstanding Amt. Ex. VAT (LCY)");
+            CurrentMonthPurchase += PurchaseLine."Outstanding Amt. Ex. VAT (LCY)";
+        end;
+
+        Clear(AmountFromILE);
+        L_PurchRcptLine.Reset();
+        L_PurchRcptLine.SetRange(Type, L_PurchRcptLine.Type::Item);
+        L_PurchRcptLine.SetRange("Parent Category", CategoryCode);
+        L_PurchRcptLine.SetFilter("Budget Receipt Date", '%1..%2', MonthStartDate, MonthEndDate);
+        L_PurchRcptLine.SetFilter(Quantity, '>0');
+        if L_PurchRcptLine.FindSet() then begin
+            repeat
+                AmountFromILE := AmountFromILE + L_PurchRcptLine."Unit Cost (LCY)" * L_PurchRcptLine.Quantity;
+            until L_PurchRcptLine.Next() = 0;
+            CurrentMonthPurchase += AmountFromILE;
+        end;
+
+        if CurrentMonthPurchase > 0 then
+            exit(CurrentMonthPurchase);
+    end;
+    // FIN-107
 }
